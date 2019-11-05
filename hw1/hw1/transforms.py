@@ -12,7 +12,8 @@ class TensorView(object):
     def __call__(self, tensor: torch.Tensor):
         # TODO: Use Tensor.view() to implement the transform.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        tensor.view()
+        # raise NotImplementedError()
         # ========================
 
 

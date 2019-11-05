@@ -22,6 +22,9 @@ class RandomImageDataset(Dataset):
         self.num_samples = num_samples
         self.image_dim = (C, W, H)
 
+        # ADDED CODE - image and class are deterministic per index
+        self.images = {}
+
     def __getitem__(self, index):
         """
         Returns a labeled sample.
@@ -36,7 +39,10 @@ class RandomImageDataset(Dataset):
         #  the random state outside this method.
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        if index not in self.images.keys():
+            self.images[index] = (torch.randint(0, 255, self.image_dim),
+                                  int(torch.randint(0, self.num_classes-1, (1,))))
+        return self.images[index]
         # ========================
 
     def __len__(self):
@@ -44,7 +50,8 @@ class RandomImageDataset(Dataset):
         :return: Number of samples in this dataset.
         """
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        return self.num_samples
+        # raise NotImplementedError()
         # ========================
 
 
@@ -72,11 +79,16 @@ class SubsetDataset(Dataset):
         #  Raise an IndexError if index is out of bounds.
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        if index+self.offset >= self.subset_len:
+            raise IndexError
+        else:
+            return self.source_dataset[index+self.offset]
+        # raise NotImplementedError()
         # ========================
 
     def __len__(self):
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        return self.subset_len
+        # raise NotImplementedError()
         # ========================
 
