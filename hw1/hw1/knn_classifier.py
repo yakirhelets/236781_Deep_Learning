@@ -2,6 +2,9 @@ import numpy as np
 import torch
 from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
+import itertools as it  # TODO remove
+import cs236781.dataloader_utils as dataloader_utils # TODO remove
+from scipy import stats
 
 import cs236781.dataloader_utils as dataloader_utils
 from . import dataloaders
@@ -30,7 +33,14 @@ class KNNClassifier(object):
         #     y_train.
         #  2. Save the number of classes as n_classes.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        x_train = torch.Tensor()
+        y_train = torch.Tensor()
+
+        for i, (X, y) in enumerate(dl_train):
+            x_train = torch.cat([x_train, X], dim=0)
+            y_train = torch.cat([y_train, y.float()], dim=0)
+
+        n_classes = (np.unique(y_train.round().numpy())).size
         # ========================
 
         self.x_train = x_train
@@ -62,7 +72,16 @@ class KNNClassifier(object):
             #  - Set y_pred[i] to the most common class among them
             #  - Don't use an explicit loop.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            ith_column = dist_matrix[:, i]
+            print(ith_column)
+            values, indices = torch.topk(ith_column, self.k, dim=0, largest=False, sorted=False, out=None)
+            print(values)
+            print(indices)
+            most_common_label = stats.mode(values.numpy())
+            print(most_common_label)
+            print(most_common_label[0][0])
+            y_pred[i] = torch.as_tensor(np.array([most_common_label[0][0]]))
+            print(y_pred[i])
             # ========================
 
         return y_pred
@@ -93,9 +112,15 @@ def l2_dist(x1: Tensor, x2: Tensor):
     # print(x1.shape, x2.shape)
     # print(torch.mm(x1.t(), x1) - torch.mm(x1, x2.t()))
     # dists = torch.sqrt(torch.mm(x1.t(), x1) - torch.mm(x1, x2.t()) + torch.mm(x2.t(), x2))
-    dists = torch.pow(torch.sub(x1,x2), 2).sum(2)
+    # dists = torch.pow(torch.sub(x1,x2), 2).sum(2)
     # return = norms - 2 * sample_1.mm(sample_2.t())
     # raise NotImplementedError()
+
+    # TODO remove
+    dists = torch.empty(x1.shape[0], x2.shape[0], dtype=torch.float)
+    for i, j in it.product(range(x1.shape[0]), range(x2.shape[0])):
+        dists[i, j] = torch.sum((x1[i] - x2[j]) ** 2).item()
+    return torch.sqrt(dists)
     # ========================
 
     return dists
@@ -115,7 +140,9 @@ def accuracy(y: Tensor, y_pred: Tensor):
     # TODO: Calculate prediction accuracy. Don't use an explicit loop.
     accuracy = None
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    equal_elements = 0
+    equal_elements += torch.sum(y == y_pred).type(torch.float32)
+    accuracy = equal_elements / len(y)
     # ========================
 
     return accuracy
