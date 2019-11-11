@@ -29,7 +29,7 @@ class InvertColors(object):
         """
         # TODO: Invert the colors of the input image.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        return torch.sub(1, x)
         # ========================
 
 
@@ -40,8 +40,9 @@ class FlipUpDown(object):
         :return: The image, flipped around the horizontal axis.
         """
         # TODO: Flip the input image so that up is down.
-        # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        # ====== YOUR CODE: =====
+        return x.flip(1)
+        # return torch.flip(x, [0, 1])
         # ========================
 
 
