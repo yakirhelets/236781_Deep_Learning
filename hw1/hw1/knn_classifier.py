@@ -108,21 +108,11 @@ def l2_dist(x1: Tensor, x2: Tensor):
 
     dists = None
     # ====== YOUR CODE: ======
-    # dists = torch.sqrt(x1.t()*x1-x1*x2.t()+x2.t()+x2)
-    # print(x1.shape, x2.shape)
-    # print(torch.mm(x1.t(), x1) - torch.mm(x1, x2.t()))
-    # dists = torch.sqrt(torch.mm(x1.t(), x1) - torch.mm(x1, x2.t()) + torch.mm(x2.t(), x2))
-    # dists = torch.pow(torch.sub(x1,x2), 2).sum(2)
-    # return = norms - 2 * sample_1.mm(sample_2.t())
-    # raise NotImplementedError()
+    x1_squared = (x1**2).sum(1).view(-1, 1)
+    x2_squared = (x2**2).sum(1).view(1, -1)
 
-    # TODO remove
-    dists = torch.empty(x1.shape[0], x2.shape[0], dtype=torch.float)
-    for i, j in it.product(range(x1.shape[0]), range(x2.shape[0])):
-        dists[i, j] = torch.sum((x1[i] - x2[j]) ** 2).item()
-    return torch.sqrt(dists)
+    dists = torch.sqrt(x1_squared + x2_squared - 2*x1.mm(x2.t()))
     # ========================
-
     return dists
 
 
