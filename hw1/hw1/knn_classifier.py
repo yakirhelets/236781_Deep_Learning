@@ -1,12 +1,9 @@
 import numpy as np
 import torch
+from scipy import stats
 from torch import Tensor
 from torch.utils.data import Dataset, DataLoader
-from scipy import stats
-
-import cs236781.dataloader_utils as dataloader_utils
 from . import dataloaders
-
 
 class KNNClassifier(object):
     def __init__(self, k):
@@ -34,9 +31,15 @@ class KNNClassifier(object):
         x_train = torch.Tensor()
         y_train = torch.Tensor()
 
-        for i, (X, y) in enumerate(dl_train):
-            x_train = torch.cat([x_train, X], dim=0)
-            y_train = torch.cat([y_train, y.float()], dim=0)
+        # it = iter(dl_train)
+        # next_tuple = next(it)
+
+        # while (next_tuple != None):
+        #     print(next_tuple)
+        for i, sample in enumerate(dl_train):
+            x_train = torch.cat([x_train, sample[0]], dim=0)
+            y_train = torch.cat([y_train, sample[1].float()], dim=0)
+            # next_tuple = next(it)
 
         n_classes = (np.unique(y_train.round().numpy())).size
         # ========================
@@ -64,22 +67,24 @@ class KNNClassifier(object):
 
         n_test = x_test.shape[0]
         y_pred = torch.zeros(n_test, dtype=torch.int64)
+
         for i in range(n_test):
             # TODO:
             #  - Find indices of k-nearest neighbors of test sample i
             #  - Set y_pred[i] to the most common class among them
             #  - Don't use an explicit loop.
             # ====== YOUR CODE: ======
-            ith_column = dist_matrix[:, i]
-            print(ith_column)
-            values, indices = torch.topk(ith_column, self.k, dim=0, largest=False, sorted=False, out=None)
-            print(values)
-            print(indices)
-            most_common_label = stats.mode(values.numpy())
-            print(most_common_label)
-            print(most_common_label[0][0])
+            # Get the ith column from the dist matrix
+            ith_col = dist_matrix[:, i]
+            # Pick the smallest k values from the column
+            values, indices = torch.topk(ith_col, self.k, dim=0, largest=False, sorted=False, out=None)
+            # Bring label of k closest from y_train
+            labels = [int(self.y_train[j].item()) for j in indices]
+            labels_arr = np.array(labels)
+            # Get the most common label
+            most_common_label = stats.mode(labels_arr)
+            # Set it as the prediction
             y_pred[i] = torch.as_tensor(np.array([most_common_label[0][0]]))
-            print(y_pred[i])
             # ========================
 
         return y_pred
@@ -161,7 +166,21 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
         #  random split each iteration), or implement something else.
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        accuracy_list = []
+        for j in range(num_folds):
+        #   split ds to numfolds
+            dl_train, dl_valid = dataloaders.create_train_validation_loaders(ds_train, 1/num_folds, batch_size=1, num_workers=1)
+        #   train on all parts except j
+            model.train(dl_train)
+        #   test on part j
+            y_pred = model.predict(dl_valid)
+        #   get accuracy
+        #     acc = accuracy(y_pred, y_true)
+        #   add accuracy to accuracy list
+        #     accuracy_list.append(acc)
+        #   add the list to the accuracies list
+        accuracies.append(accuracy_list)
+        # print(dl_valid)
         # ========================
 
     best_k_idx = np.argmax([np.mean(acc) for acc in accuracies])
