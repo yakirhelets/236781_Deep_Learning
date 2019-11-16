@@ -31,15 +31,9 @@ class KNNClassifier(object):
         x_train = torch.Tensor()
         y_train = torch.Tensor()
 
-        # it = iter(dl_train)
-        # next_tuple = next(it)
-
-        # while (next_tuple != None):
-        #     print(next_tuple)
-        for i, sample in enumerate(dl_train):
-            x_train = torch.cat([x_train, sample[0]], dim=0)
-            y_train = torch.cat([y_train, sample[1].float()], dim=0)
-            # next_tuple = next(it)
+        for _, (samples, classes) in enumerate(dl_train):
+            x_train = torch.cat([x_train, samples], dim=0)
+            y_train = torch.cat([y_train, classes.float()], dim=0)
 
         n_classes = (np.unique(y_train.round().numpy())).size
         # ========================
@@ -76,13 +70,17 @@ class KNNClassifier(object):
             # ====== YOUR CODE: ======
             # Get the ith column from the dist matrix
             ith_col = dist_matrix[:, i]
+
             # Pick the smallest k values from the column
             values, indices = torch.topk(ith_col, self.k, dim=0, largest=False, sorted=False, out=None)
+            
             # Bring label of k closest from y_train
             labels = [int(self.y_train[j].item()) for j in indices]
             labels_arr = np.array(labels)
+            
             # Get the most common label
             most_common_label = stats.mode(labels_arr)
+           
             # Set it as the prediction
             y_pred[i] = torch.as_tensor(np.array([most_common_label[0][0]]))
             # ========================
@@ -166,21 +164,37 @@ def find_best_k(ds_train: Dataset, k_choices, num_folds):
         #  random split each iteration), or implement something else.
 
         # ====== YOUR CODE: ======
-        accuracy_list = []
+        # Split to num_folds:
+        lengths = [int(round(len(ds_train)/num_folds)) for _ in range(num_folds)]
+        subsets = torch.utils.data.random_split(ds_train, lengths)
+
         for j in range(num_folds):
-        #   split ds to numfolds
-            dl_train, dl_valid = dataloaders.create_train_validation_loaders(ds_train, 1/num_folds, batch_size=1, num_workers=1)
-        #   train on all parts except j
+            accuracy_list = []
+
+            # Test set
+            test_set = subsets[j]
+
+            # Train set
+            train_subsets = [subset for subset in subsets if subset != subsets[j]]
+            train_set = torch.utils.data.ConcatDataset(train_subsets)
+            dl_train = torch.utils.data.DataLoader(dataset=train_set, batch_size=100, num_workers=2)
+            
             model.train(dl_train)
-        #   test on part j
-            y_pred = model.predict(dl_valid)
-        #   get accuracy
-        #     acc = accuracy(y_pred, y_true)
-        #   add accuracy to accuracy list
-        #     accuracy_list.append(acc)
-        #   add the list to the accuracies list
+
+            acc = 0
+            for example in test_set:
+                # example[0] is a tensor
+                y_pred = model.predict(example[0].reshape(1,-1))
+                y_true = torch.tensor([example[1]])
+
+                acc += accuracy(y_pred, y_true).item()
+
+            # Accuracy for each fold
+            fold_accuracy = acc/len(ds_train)
+            accuracy_list.append(fold_accuracy)
+
+        # Accuracy for each k parameter
         accuracies.append(accuracy_list)
-        # print(dl_valid)
         # ========================
 
     best_k_idx = np.argmax([np.mean(acc) for acc in accuracies])
