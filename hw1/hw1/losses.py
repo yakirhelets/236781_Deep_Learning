@@ -53,6 +53,12 @@ class SVMHingeLoss(ClassifierLoss):
         loss = None
         # ====== YOUR CODE: ======
         raise NotImplementedError()
+        # Creating M
+
+
+        # Creating a tensor with L_i(W) for i=1 to i=N
+
+        # Calculating the final loss L(W)
         # ========================
 
         # TODO: Save what you need for gradient calculation in self.grad_ctx

@@ -5,7 +5,7 @@ from sklearn.preprocessing import PolynomialFeatures
 from pandas import DataFrame
 from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted, check_X_y
-
+import scipy
 
 class LinearRegressor(BaseEstimator, RegressorMixin):
     """
@@ -30,7 +30,20 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
         y_pred = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        # Bias trick already operated
+        N = X.shape[0]
+        y_pred_tmp = []
+        w_row = self.weights_.reshape((-1, 1)).transpose()
+        w_row = np.around(w_row, decimals=1)
+
+        for i in range(N):
+            x_col_i = X[i].reshape((-1, 1))
+            # x_col_i = np.around(x_col_i, decimals=4)
+
+            next_pred_value = np.matmul(w_row, x_col_i)
+            y_pred_tmp.append(int(next_pred_value[0][0]))
+        # y_pred_tmp = np.around(y_pred_tmp, decimals=2)
+        y_pred = np.asarray(y_pred_tmp)
         # ========================
 
         return y_pred
@@ -49,7 +62,13 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
 
         w_opt = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        N = X.shape[0]
+        first_term = np.matmul(X.transpose(), X) # X_t * X
+        second_term = np.linalg.inv(first_term) # (X_t * X)^-1
+        third_term = np.matmul(second_term, X.transpose()) # (X_t * X)^-1 * X_t
+        w_tmp = np.matmul(third_term, y) # (X_t * X)^-1 * X_t * y
+        # reg_term = (self.reg_lambda / (2*N)) * np.sum(w_tmp**2)
+        w_opt = w_tmp #+ reg_term
         # ========================
 
         self.weights_ = w_opt
@@ -77,7 +96,9 @@ class BiasTrickTransformer(BaseEstimator, TransformerMixin):
 
         xb = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        N = X.shape[0]
+        ones = np.ones((N,1), dtype=X.dtype)
+        xb = np.hstack((ones, X))
         # ========================
 
         return xb
@@ -140,7 +161,21 @@ def top_correlated_features(df: DataFrame, target_feature, n=5):
     # TODO: Calculate correlations with target and sort features by it
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    top_n_features = []
+    top_n_corr = []
+    features_corr_dict = {}
+    # for each feature that is not the target feature, calc the p_x,y and add to a dict
+    # with names as keys and corrs as values
+    for col in df.columns:
+        if col != target_feature:
+            p = scipy.stats.pearsonr(df[target_feature], df[col])
+            features_corr_dict[col] = p[0]
+
+    for i in range(n):
+        next_top = max(features_corr_dict, key=lambda y: np.abs(features_corr_dict[y])) # get top
+        top_n_features.append(next_top) # insert name
+        top_n_corr.append(features_corr_dict[next_top]) # insert value
+        features_corr_dict.pop(next_top) # remove top from dict
     # ========================
 
     return top_n_features, top_n_corr
@@ -156,7 +191,7 @@ def mse_score(y: np.ndarray, y_pred: np.ndarray):
 
     # TODO: Implement MSE using numpy.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    mse = ((y_pred - y)**2).mean()
     # ========================
     return mse
 
@@ -171,7 +206,13 @@ def r2_score(y: np.ndarray, y_pred: np.ndarray):
 
     # TODO: Implement R^2 using numpy.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    nominator = 0
+    denominator = 0
+    y_mean = np.mean(y)
+    for i in range(len(y)):
+        nominator += (y[i]-y_pred[i])**2
+        denominator += (y[i]-y_mean)**2
+    r2 = 1 - (nominator/denominator)
     # ========================
     return r2
 
