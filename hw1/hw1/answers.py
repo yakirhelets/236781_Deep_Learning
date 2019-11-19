@@ -89,26 +89,51 @@ An equation: $e^{i\pi} -1 = 0$
 part4_q1 = r"""
 **Your answer:**
 
+In a residual plot, the ideal pattern would be that the entire data set points lie
+on the line that represents y - y_hat = 0. This way the prediction for the entire
+data set is correct and the error rate will be zero (However, oftentimes it is
+a situation that is difficult to achieve).
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+If we look at the residual plot in the last part (Generalization), we can
+see that the fitness level of the trained model is pretty high, and it describes
+the real world pretty well given the fact that most of the test data points lie
+close to the line y - y_hat = 0 (which indicates correct prediction). It means
+we were able to generalize our model pretty well based on the training data.
+
+Additionally, looking at the plot for the top-5 features and looking at the
+final plot after CV, we can identify that the former is less accurate, since
+more data points lie further from the correct prediction line, while the latter
+indicates choosing the best hyperparameters and thus improving the model, and
+therefore shows an improvement when more data points lie closer to the correct
+prediction line.
 
 """
 
 part4_q2 = r"""
 **Your answer:**
 
+1. ```np.linspace``` represents numbers that are spaced evenly on a linear scale,
+while ```np.logspace``` represents them spaced evenly on a log scale.
+Since the lambda parameter is being used in the code in a multiplication,
+it makes more sense to define its range using logspace, because we would like
+to examine subtle changes in lambda's values. Large changes in its value will
+greatly affect the end result of the computation and it will be difficult therefore
+to select a value that is ideal. We would like to fine-tune its value in order
+to get the best result.
+Additionally, lambda's range, unlike other hyperparameters ranges, is continuous,
+which makes it more suitable for logspace scale because the ideal value most
+certainly lies somewhere in between discrete values. Other parameters, such
+as the 'degree' parameter in the code, must be taken from a linspace scale (or,
+as done above, be defined by hand with a range of integers). 
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. By performing K-fold CV, we are fitting the data K times, since we are dividing
+the data into K different folds while in each of the K iterations we are fitting
+(K-1) parts of the data and predicting on the remaining part.
+If we look at the code above, and including hyperparameters examination,
+we have 3 options for the degree and 20 options for lambda, which make 60 different
+options for parameters combinations. In addition, we are using 3-fold CV, and so
+overall we are fitting 3 times on each of the parameters combination, to make
+180 fittings in total (not including the final fit on the entire training set). 
 
 """
 

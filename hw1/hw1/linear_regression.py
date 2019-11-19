@@ -1,11 +1,13 @@
-import numpy as np
 import sklearn
+
+import numpy as np
+import scipy # TODO maybe remove later
+from pandas import DataFrame
 from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin
 from sklearn.preprocessing import PolynomialFeatures
-from pandas import DataFrame
 from sklearn.utils import check_array
 from sklearn.utils.validation import check_is_fitted, check_X_y
-import scipy
+
 
 class LinearRegressor(BaseEstimator, RegressorMixin):
     """
@@ -31,19 +33,11 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
         y_pred = None
         # ====== YOUR CODE: ======
         # Bias trick already operated
-        N = X.shape[0]
-        y_pred_tmp = []
-        w_row = self.weights_.reshape((-1, 1)).transpose()
-        w_row = np.around(w_row, decimals=1)
+        W = self.weights_.reshape((-1, 1)).transpose()
+        x_t = X.transpose()
+        y_pred_tmp = np.matmul(W, x_t)
+        y_pred = y_pred_tmp[0]
 
-        for i in range(N):
-            x_col_i = X[i].reshape((-1, 1))
-            # x_col_i = np.around(x_col_i, decimals=4)
-
-            next_pred_value = np.matmul(w_row, x_col_i)
-            y_pred_tmp.append(int(next_pred_value[0][0]))
-        # y_pred_tmp = np.around(y_pred_tmp, decimals=2)
-        y_pred = np.asarray(y_pred_tmp)
         # ========================
 
         return y_pred
@@ -64,11 +58,13 @@ class LinearRegressor(BaseEstimator, RegressorMixin):
         # ====== YOUR CODE: ======
         N = X.shape[0]
         first_term = np.matmul(X.transpose(), X) # X_t * X
-        second_term = np.linalg.inv(first_term) # (X_t * X)^-1
+        reg_matrix = self.reg_lambda * N * np.identity(X.shape[1]) # Regularization term
+        reg_matrix[0][0] = 0
+        mid_term = first_term + reg_matrix # Add regularization term
+        second_term = np.linalg.inv(mid_term) # (X_t * X)^-1
         third_term = np.matmul(second_term, X.transpose()) # (X_t * X)^-1 * X_t
-        w_tmp = np.matmul(third_term, y) # (X_t * X)^-1 * X_t * y
-        # reg_term = (self.reg_lambda / (2*N)) * np.sum(w_tmp**2)
-        w_opt = w_tmp #+ reg_term
+        w_opt = np.matmul(third_term, y) # (X_t * X)^-1 * X_t * y
+
         # ========================
 
         self.weights_ = w_opt
@@ -115,7 +111,7 @@ class BostonFeaturesTransformer(BaseEstimator, TransformerMixin):
         # TODO: Your custom initialization, if needed
         # Add any hyperparameters you need and save them as above
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.poly = PolynomialFeatures(degree)
         # ========================
 
     def fit(self, X, y=None):
@@ -137,7 +133,35 @@ class BostonFeaturesTransformer(BaseEstimator, TransformerMixin):
 
         X_transformed = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+
+
+        # X_all_polys = self.poly.fit_transform(X)
+        # feats = self.poly.get_feature_names()
+        # all_features_list = list(range(0, len(feats)))
+        # X_transformed = X_all_polys[:, all_features_list]
+        # sel = VarianceThreshold(threshold=1e-8)
+        # sel.fit(X_transformed)
+
+        # ds_boston = sklearn.datasets.load_boston()
+        # y = ds_boston.target
+        # X_transformed = SelectKBest(r2_score, k=110).fit_transform(X_transformed, y)
+        # print(X_transformed.shape)
+
+
+
+
+
+
+        X_all_polys = self.poly.fit_transform(X)
+        feats = self.poly.get_feature_names()
+
+        deg = self.poly.degree
+        if deg == 1:
+            X_transformed = X_all_polys[:,[1,2,4,7,12]]
+        else:
+            X_transformed = X_all_polys[:,[1,2,4,7,12,67]]
+
+
         # ========================
 
         return X_transformed
@@ -244,7 +268,12 @@ def cv_best_hyperparams(model: BaseEstimator, X, y, k_folds,
     #  - You can use MSE or R^2 as a score.
 
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    # TODO consider changing that to code that generates key names automatically from model.get_params()
+    params_to_try_dict = {'bostonfeaturestransformer__degree': degree_range, 'linearregressor__reg_lambda': lambda_range}
+    grid_search_cv = sklearn.model_selection.GridSearchCV(estimator=model, param_grid=params_to_try_dict,
+                                                                iid=True, cv=k_folds)
+    grid_search_cv.fit(X, y)
+    best_params = grid_search_cv.best_params_
     # ========================
 
     return best_params
