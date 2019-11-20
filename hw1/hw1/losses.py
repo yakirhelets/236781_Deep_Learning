@@ -51,8 +51,6 @@ class SVMHingeLoss(ClassifierLoss):
 
         loss = None
         # ====== YOUR CODE: ======
-
-
         print(x.shape) # N*D
         print(x_scores.shape) # N*C
         print(y.shape) # N row vector
@@ -64,16 +62,21 @@ class SVMHingeLoss(ClassifierLoss):
         # Naive approach - explicit loop:
         example_idx = 0
         for classification in y:
+            # print(x_scores[example_idx], y[classification], x_scores[example_idx][y[classification]])
             diff[example_idx] = x_scores[example_idx] - x_scores[example_idx][y[classification]] + self.delta
             example_idx += 1
 
         loss = torch.zeros([1,])
 
+        zeros_mat = torch.zeros_like(diff)
         print(diff)
 
-        zeros_mat = torch.zeros_like(diff)
         diff_2 = torch.max(diff, zeros_mat)
-        loss = torch.sum(diff_2)
+        print(diff_2)
+        # loss = torch.sum(diff_2)
+        for classification in diff_2:
+            loss += torch.sum(classification)
+            loss -= self.delta
         # ========================
 
         # TODO: Save what you need for gradient calculation in self.grad_ctx
