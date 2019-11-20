@@ -27,7 +27,7 @@ class SVMHingeLoss(ClassifierLoss):
         self.delta = delta
         self.grad_ctx = {}
 
-       def loss(self, x, y, x_scores, y_predicted):
+    def loss(self, x, y, x_scores, y_predicted):
         """
         Calculates the Hinge-loss for a batch of samples.
 
