@@ -1,6 +1,5 @@
 import abc
-import torch
-
+import numpy as np
 
 class ClassifierLoss(abc.ABC):
     """
@@ -52,7 +51,10 @@ class SVMHingeLoss(ClassifierLoss):
 
         loss = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        print(x.shape)
+        print(y.shape)
+        print(x_scores.shape)
+        print(y_predicted.shape)
         # Creating M
 
 
@@ -63,7 +65,11 @@ class SVMHingeLoss(ClassifierLoss):
 
         # TODO: Save what you need for gradient calculation in self.grad_ctx
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.grad_ctx['M_matrix'] = M
+        self.grad_ctx['X_rows_len'] = x.shape[0]
+        self.grad_ctx['X_cols_len'] = x.shape[1]
+        self.grad_ctx['x'] = x
+        self.grad_ctx['y_size'] = len(y)
         # ========================
 
         return loss
@@ -81,7 +87,25 @@ class SVMHingeLoss(ClassifierLoss):
 
         grad = None
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        M = self.grad_ctx['M_matrix']
+        N = self.grad_ctx['X_rows_len']
+        D = self.grad_ctx['X_cols_len']
+        C = self.grad_ctx['y_size']
+        x = self.grad_ctx['x']
+        # G = TODO G should be of shape N x C
+        new_mat = None
+        for j in range(C):
+            col = None
+            for i in range(N):
+                if (M[i,j] > 0):
+                    next_element = x[i, :]
+                else:
+                    next_element = np.zeros((1, D))
+                col += next_element
+            col /= N
+            # TODO add col to new_mat
+
+        grad = np.matmul(x.transpose(), G)
         # ========================
 
         return grad

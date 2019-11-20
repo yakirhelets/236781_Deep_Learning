@@ -133,35 +133,9 @@ class BostonFeaturesTransformer(BaseEstimator, TransformerMixin):
 
         X_transformed = None
         # ====== YOUR CODE: ======
-
-
-        # X_all_polys = self.poly.fit_transform(X)
-        # feats = self.poly.get_feature_names()
-        # all_features_list = list(range(0, len(feats)))
-        # X_transformed = X_all_polys[:, all_features_list]
-        # sel = VarianceThreshold(threshold=1e-8)
-        # sel.fit(X_transformed)
-
-        # ds_boston = sklearn.datasets.load_boston()
-        # y = ds_boston.target
-        # X_transformed = SelectKBest(r2_score, k=110).fit_transform(X_transformed, y)
-        # print(X_transformed.shape)
-
-
-
-
-
-
         X_all_polys = self.poly.fit_transform(X)
-        feats = self.poly.get_feature_names()
-
-        deg = self.poly.degree
-        if deg == 1:
-            X_transformed = X_all_polys[:,[1,2,4,7,12]]
-        else:
-            X_transformed = X_all_polys[:,[1,2,4,7,12,67]]
-
-
+        X_transformed = X_all_polys
+        # X_transformed = X_all_polys[:, [0,1,3,4,5,7,8,9,10,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,54,55,56,57,58,59,60,61,62,63,64,65,77,82,84,92,117,119]]
         # ========================
 
         return X_transformed
