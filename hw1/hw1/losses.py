@@ -75,7 +75,12 @@ class SVMHingeLoss(ClassifierLoss):
 
         # TODO: Save what you need for gradient calculation in self.grad_ctx
         # ====== YOUR CODE: ======
-        self.grad_ctx = marginalLoss
+        self.grad_ctx['marginalLoss'] = marginalLoss
+        self.grad_ctx['X_rows_len'] = x.shape[0]
+        self.grad_ctx['X_cols_len'] = x.shape[1]
+        self.grad_ctx['X_scores_cols'] = x_scores.shape[1]
+        self.grad_ctx['x'] = x
+        self.grad_ctx['y'] = y
         # ========================
 
         return loss
@@ -93,25 +98,25 @@ class SVMHingeLoss(ClassifierLoss):
 
         grad = None
         # ====== YOUR CODE: ======
-        M = self.grad_ctx['M_matrix']
+        M = self.grad_ctx['marginalLoss']
         N = self.grad_ctx['X_rows_len']
-        D = self.grad_ctx['X_cols_len']
-        C = self.grad_ctx['y_size']
+        C = self.grad_ctx['X_scores_cols']
         x = self.grad_ctx['x']
-        # G = TODO G should be of shape N x C
-        new_mat = None
-        for j in range(C):
-            col = None
-            for i in range(N):
-                if (M[i,j] > 0):
-                    next_element = x[i, :]
-                else:
-                    next_element = np.zeros((1, D))
-                col += next_element
-            col /= N
-            # TODO add col to new_mat
+        y = self.grad_ctx['y']
+        G = torch.zeros([N, C])
 
-        grad = np.matmul(x.transpose(), G)
+        for i in range(M.shape[0]):
+            for j in range(M.shape[1]):
+                if j != y[i]:
+                    if M[i][j] > 0:
+                        G[i][j] = 1
+
+        for i in range(G.shape[0]):
+            G[i][y[i]] = torch.sum(G[i]) * (-1)
+
+        grad = np.matmul(x.t(), G)
+
+        grad /= N
         # ========================
 
         return grad
