@@ -27,7 +27,7 @@ class SVMHingeLoss(ClassifierLoss):
         self.delta = delta
         self.grad_ctx = {}
 
-    def loss(self, x, y, x_scores, y_predicted):
+       def loss(self, x, y, x_scores, y_predicted):
         """
         Calculates the Hinge-loss for a batch of samples.
 
@@ -51,25 +51,34 @@ class SVMHingeLoss(ClassifierLoss):
 
         loss = None
         # ====== YOUR CODE: ======
-        print(x.shape)
-        print(y.shape)
-        print(x_scores.shape)
-        print(y_predicted.shape)
-        # Creating M
 
 
-        # Creating a tensor with L_i(W) for i=1 to i=N
+        print(x.shape) # N*D
+        print(x_scores.shape) # N*C
+        print(y.shape) # N row vector
+        print(y_predicted.shape) # N row vector
 
-        # Calculating the final loss L(W)
+        diff = x_scores
+        print(diff.shape)
+
+        # Naive approach - explicit loop:
+        example_idx = 0
+        for classification in y:
+            diff[example_idx] = x_scores[example_idx] - x_scores[example_idx][y[classification]] + self.delta
+            example_idx += 1
+
+        loss = torch.zeros([1,])
+
+        print(diff)
+
+        zeros_mat = torch.zeros_like(diff)
+        diff_2 = torch.max(diff, zeros_mat)
+        loss = torch.sum(diff_2)
         # ========================
 
         # TODO: Save what you need for gradient calculation in self.grad_ctx
         # ====== YOUR CODE: ======
-        self.grad_ctx['M_matrix'] = M
-        self.grad_ctx['X_rows_len'] = x.shape[0]
-        self.grad_ctx['X_cols_len'] = x.shape[1]
-        self.grad_ctx['x'] = x
-        self.grad_ctx['y_size'] = len(y)
+        self.grad_ctx = diff
         # ========================
 
         return loss
