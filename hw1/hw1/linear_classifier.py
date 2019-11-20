@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from torch import Tensor
 from torch.utils.data import DataLoader
@@ -104,7 +105,36 @@ class LinearClassifier(object):
             #     using the weight_decay parameter.
 
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+
+            reg_term = (weight_decay / 2) * (np.linalg.norm(self.weights)**2)
+
+            # Evaluation on the training set
+            acc_list = []
+            loss_list = []
+            for step, (x, y) in enumerate(dl_train):
+                y_pred, class_scores = self.predict(x)
+                acc_list.append(self.evaluate_accuracy(y, y_pred))
+                loss_list.append(loss_fn.loss(x, y, class_scores, y_pred) + reg_term)
+
+            train_res[0].append(np.average(acc_list))
+            train_res[1].append(np.average(loss_list))
+
+            # Evaluation on the validation set
+            acc_list = []
+            loss_list = []
+            for step, (x, y) in enumerate(dl_valid):
+                y_pred, class_scores = self.predict(x)
+                acc_list.append(self.evaluate_accuracy(y, y_pred))
+                loss_list.append(loss_fn.loss(x, y, class_scores, y_pred) + reg_term)
+
+            valid_res[0].append(total_correct)
+            valid_res[1].append(average_loss)
+
+
+            # Computing the gradient
+            grad = loss_fn.grad() # TODO make sure it is wrt to W
+            # Updating the weights
+            self.weights = self.weights - learn_rate * grad
             # ========================
             print('.', end='')
 
@@ -125,7 +155,17 @@ class LinearClassifier(object):
         #  The output shape should be (n_classes, C, H, W).
 
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        new_weights = None
+        if has_bias:
+            # remove first col
+            new_weights = self.weights[1:,:]
+
+        n_classes = new_weights.shape[1]
+        C = img_shape[0]
+        H = img_shape[1]
+        W = img_shape[2]
+
+        w_images = new_weights.view(n_classes, C, H, W)
         # ========================
 
         return w_images
