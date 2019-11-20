@@ -1,5 +1,6 @@
 import abc
 import numpy as np
+import torch
 
 class ClassifierLoss(abc.ABC):
     """
@@ -51,37 +52,30 @@ class SVMHingeLoss(ClassifierLoss):
 
         loss = None
         # ====== YOUR CODE: ======
-        print(x.shape) # N*D
-        print(x_scores.shape) # N*C
-        print(y.shape) # N row vector
-        print(y_predicted.shape) # N row vector
+        marginalLoss = torch.zeros_like(x_scores)
 
-        diff = x_scores
-        print(diff.shape)
-
-        # Naive approach - explicit loop:
+        # TODO: refactor without explicit loops
         example_idx = 0
         for classification in y:
-            # print(x_scores[example_idx], y[classification], x_scores[example_idx][y[classification]])
-            diff[example_idx] = x_scores[example_idx] - x_scores[example_idx][y[classification]] + self.delta
+            marginalLoss[example_idx] = x_scores[example_idx] - x_scores[example_idx][classification] + self.delta
             example_idx += 1
 
+        zeros_mat = torch.zeros_like(marginalLoss)
         loss = torch.zeros([1,])
 
-        zeros_mat = torch.zeros_like(diff)
-        print(diff)
+        L_i = torch.max(marginalLoss, zeros_mat)
 
-        diff_2 = torch.max(diff, zeros_mat)
-        print(diff_2)
-        # loss = torch.sum(diff_2)
-        for classification in diff_2:
+        # TODO: refactor without explicit loops
+        for classification in L_i:
             loss += torch.sum(classification)
             loss -= self.delta
+        
+        loss /= x_scores.shape[0]
         # ========================
 
         # TODO: Save what you need for gradient calculation in self.grad_ctx
         # ====== YOUR CODE: ======
-        self.grad_ctx = diff
+        self.grad_ctx = marginalLoss
         # ========================
 
         return loss
