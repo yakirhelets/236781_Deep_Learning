@@ -106,12 +106,19 @@ class LinearClassifier(object):
 
             # ====== YOUR CODE: ======
 
-            reg_term = (weight_decay / 2) * (np.linalg.norm(self.weights)**2)
+            W_norm = np.linalg.norm(self.weights)
+            reg_term = (weight_decay / 2) * (W_norm**2)
+
+            dl_train_new = torch.utils.data.DataLoader(dataset=dl_train.dataset, batch_size=dl_train.batch_size,
+                                                     num_workers=dl_train.num_workers)
+            dl_valid_new = torch.utils.data.DataLoader(dataset=dl_valid.dataset, batch_size=dl_valid.batch_size,
+                                                     num_workers=dl_valid.num_workers)
 
             # Evaluation on the training set
             acc_list = []
             loss_list = []
-            for step, (x, y) in enumerate(dl_train):
+
+            for _, (x, y) in enumerate(dl_train_new):
                 y_pred, class_scores = self.predict(x)
                 acc_list.append(self.evaluate_accuracy(y, y_pred))
                 loss_list.append(loss_fn.loss(x, y, class_scores, y_pred) + reg_term)
@@ -122,13 +129,13 @@ class LinearClassifier(object):
             # Evaluation on the validation set
             acc_list = []
             loss_list = []
-            for step, (x, y) in enumerate(dl_valid):
+            for _, (x, y) in enumerate(dl_valid_new):
                 y_pred, class_scores = self.predict(x)
                 acc_list.append(self.evaluate_accuracy(y, y_pred))
                 loss_list.append(loss_fn.loss(x, y, class_scores, y_pred) + reg_term)
 
-            valid_res[0].append(total_correct)
-            valid_res[1].append(average_loss)
+            valid_res[0].append(np.average(acc_list))
+            valid_res[1].append(np.average(loss_list))
 
 
             # Computing the gradient
@@ -178,7 +185,9 @@ def hyperparams():
     #  Manually tune the hyperparameters to get the training accuracy test
     #  to pass.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    hp['weight_std'] = 0.001
+    hp['learn_rate'] = 0.1
+    hp['weight_decay'] = 0.001
     # ========================
 
     return hp
