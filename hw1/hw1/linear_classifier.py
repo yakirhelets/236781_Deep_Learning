@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from torch import Tensor
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, sampler
 from collections import namedtuple
 
 from .losses import ClassifierLoss
@@ -106,42 +106,45 @@ class LinearClassifier(object):
 
             # ====== YOUR CODE: ======
 
-            W_norm = np.linalg.norm(self.weights)
-            reg_term = (weight_decay / 2) * (W_norm**2)
-
             dl_train_new = torch.utils.data.DataLoader(dataset=dl_train.dataset, batch_size=dl_train.batch_size,
-                                                     num_workers=dl_train.num_workers)
+                                                       num_workers=dl_train.num_workers)
             dl_valid_new = torch.utils.data.DataLoader(dataset=dl_valid.dataset, batch_size=dl_valid.batch_size,
-                                                     num_workers=dl_valid.num_workers)
+                                                       num_workers=dl_valid.num_workers)
 
             # Evaluation on the training set
             acc_list = []
             loss_list = []
 
-            for _, (x, y) in enumerate(dl_train_new):
+            for (x, y) in dl_train_new:
                 y_pred, class_scores = self.predict(x)
-                acc_list.append(self.evaluate_accuracy(y, y_pred))
-                loss_list.append(loss_fn.loss(x, y, class_scores, y_pred) + reg_term)
+                accuracy = LinearClassifier.evaluate_accuracy(y, y_pred)
+                acc_list.append(accuracy)
+                curr_loss = loss_fn.loss(x, y, class_scores, y_pred)
+                loss_list.append(curr_loss)
 
+                # Computing the gradient
+                grad = loss_fn.grad()
+                grad += (weight_decay * self.weights)
+                self.weights -= (learn_rate * grad)
+                # self.weights = self.weights - (learn_rate * grad + weight_decay * self.weights)
+
+            print(np.average(acc_list))
             train_res[0].append(np.average(acc_list))
             train_res[1].append(np.average(loss_list))
 
             # Evaluation on the validation set
             acc_list = []
             loss_list = []
-            for _, (x, y) in enumerate(dl_valid_new):
+            for (x, y) in dl_valid_new:
                 y_pred, class_scores = self.predict(x)
-                acc_list.append(self.evaluate_accuracy(y, y_pred))
-                loss_list.append(loss_fn.loss(x, y, class_scores, y_pred) + reg_term)
+                accuracy = LinearClassifier.evaluate_accuracy(y, y_pred)
+                acc_list.append(accuracy)
+                curr_loss = loss_fn.loss(x, y, class_scores, y_pred)
+                loss_list.append(curr_loss)
 
             valid_res[0].append(np.average(acc_list))
             valid_res[1].append(np.average(loss_list))
 
-
-            # Computing the gradient
-            grad = loss_fn.grad() # TODO make sure it is wrt to W
-            # Updating the weights
-            self.weights = self.weights - learn_rate * grad
             # ========================
             print('.', end='')
 
@@ -172,6 +175,7 @@ class LinearClassifier(object):
         H = img_shape[1]
         W = img_shape[2]
 
+        new_weights = new_weights.t()
         w_images = new_weights.view(n_classes, C, H, W)
         # ========================
 
@@ -185,9 +189,9 @@ def hyperparams():
     #  Manually tune the hyperparameters to get the training accuracy test
     #  to pass.
     # ====== YOUR CODE: ======
-    hp['weight_std'] = 0.001
+    hp['weight_std'] = 0.01
     hp['learn_rate'] = 0.1
-    hp['weight_decay'] = 0.001
+    hp['weight_decay'] = 1
     # ========================
 
     return hp

@@ -44,15 +44,11 @@ on a different test-set, which leads to consistent results and lack of bias.
 
 part3_q1 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+The selection of Delta > 0 is arbitrary for the SVM loss because of the following reason. The magnitude of
+the weights matrix W has a direct effect on the scores in that the more we make the values inside W smaller,
+the more the score differences will become smaller, and vice versa. Since we can reduce or enlarge the score
+differences arbitrarily, and we do not care what exact value the margin between the scores will have,
+we can set the value of Delta to also be arbitrary.
 """
 
 part3_q2 = r"""
