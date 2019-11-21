@@ -87,12 +87,6 @@ class LinearClassifier(object):
         train_res = Result(accuracy=[], loss=[])
         valid_res = Result(accuracy=[], loss=[])
 
-        train_loss = []
-        train_accuracy = []
-
-        valid_loss = []
-        valid_accuracy = []
-
         print('Training', end='')
         for epoch_idx in range(max_epochs):
             total_correct = 0
@@ -111,68 +105,45 @@ class LinearClassifier(object):
 
             # ====== YOUR CODE: ======
 
-            # dl_train_new = torch.utils.data.DataLoader(dataset=dl_train.dataset, batch_size=dl_train.batch_size,
-            #                                            num_workers=dl_train.num_workers)
-            # dl_valid_new = torch.utils.data.DataLoader(dataset=dl_valid.dataset, batch_size=dl_valid.batch_size,
-            #                                            num_workers=dl_valid.num_workers)
+            dl_train_new = torch.utils.data.DataLoader(dataset=dl_train.dataset, batch_size=dl_train.batch_size,
+                                                       num_workers=dl_train.num_workers)
+            dl_valid_new = torch.utils.data.DataLoader(dataset=dl_valid.dataset, batch_size=dl_valid.batch_size,
+                                                       num_workers=dl_valid.num_workers)
 
             # Evaluation on the training set
-            # acc_list = []
-            # loss_list = []
-            batch_num = 0
-            for (x, y) in dl_train:
+            acc_list = []
+            loss_list = []
+            for (x, y) in dl_train_new:
                 y_pred, class_scores = self.predict(x)
                 accuracy = LinearClassifier.evaluate_accuracy(y, y_pred)
-                total_correct += accuracy
-                # acc_list.append(accuracy)
+                acc_list.append(accuracy)
                 curr_loss = loss_fn.loss(x, y, class_scores, y_pred)
-                average_loss += curr_loss
-                # loss_list.append(curr_loss)
+                loss_list.append(curr_loss)
 
                 # Computing the gradient
                 grad = loss_fn.grad()
-                # grad += (weight_decay * self.weights)
-                # self.weights -= (learn_rate * grad)
-                reg_term = self.weights * weight_decay
-                self.weights = self.weights - (learn_rate * grad + reg_term)
+                grad += (weight_decay * self.weights)
+                self.weights -= (learn_rate * grad)
 
-                batch_num += 1
-
-            train_accuracy += [total_correct / batch_num]
-            train_loss += [average_loss / batch_num]
-            # train_res[0].append(np.average(acc_list))
-            # train_res[1].append(np.average(loss_list))
+            print(accuracy)
+            train_res[0].append(np.average(acc_list))
+            train_res[1].append(np.average(loss_list))
 
             # Evaluation on the validation set
-
-
-            total_correct = 0
-            average_loss = 0
-
-            # acc_list = []
-            # loss_list = []
-            batch_num = 0
-            for (x, y) in dl_valid:
+            acc_list = []
+            loss_list = []
+            for (x, y) in dl_valid_new:
                 y_pred, class_scores = self.predict(x)
                 accuracy = LinearClassifier.evaluate_accuracy(y, y_pred)
-                total_correct += accuracy
-                # acc_list.append(accuracy)
+                acc_list.append(accuracy)
                 curr_loss = loss_fn.loss(x, y, class_scores, y_pred)
-                average_loss += curr_loss
-                # loss_list.append(curr_loss)
+                loss_list.append(curr_loss)
 
-                batch_num += 1
-
-            valid_accuracy += [total_correct / batch_num]
-            valid_loss += [average_loss / batch_num]
-            # valid_res[0].append(np.average(acc_list))
-            # valid_res[1].append(np.average(loss_list))
+            valid_res[0].append(np.average(acc_list))
+            valid_res[1].append(np.average(loss_list))
 
             # ========================
             print('.', end='')
-
-        train_res = Result(accuracy=train_accuracy, loss=train_loss)
-        valid_res = Result(accuracy=valid_accuracy, loss=valid_loss)
 
         print('')
         return train_res, valid_res
@@ -215,9 +186,9 @@ def hyperparams():
     #  Manually tune the hyperparameters to get the training accuracy test
     #  to pass.
     # ====== YOUR CODE: ======
-    hp['weight_std'] = 0.001
-    hp['learn_rate'] = 0.01
-    hp['weight_decay'] = 0.001
+    hp['weight_std'] = 0.01
+    hp['learn_rate'] = 1
+    hp['weight_decay'] = 0.1
     # ========================
 
     return hp

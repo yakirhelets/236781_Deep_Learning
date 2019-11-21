@@ -38,8 +38,9 @@ def create_train_validation_loaders(dataset: Dataset, validation_ratio,
     train_sampler = sampler.SubsetRandomSampler(train_dataset)
     valid_sampler = sampler.SubsetRandomSampler(valid_dataset)
 
-    dl_train = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=batch_size, num_workers=num_workers, shuffle=False, sampler=train_sampler)
-    dl_valid = torch.utils.data.DataLoader(dataset=valid_dataset, batch_size=batch_size, num_workers=num_workers, shuffle=False, sampler=valid_sampler)
+    dl_train = torch.utils.data.DataLoader(dataset=train_dataset, batch_size=batch_size, num_workers=0, shuffle=False, sampler=train_sampler)
+    dl_valid = torch.utils.data.DataLoader(dataset=valid_dataset, batch_size=batch_size, num_workers=0, shuffle=False, sampler=valid_sampler)
+
     # ========================
 
     return dl_train, dl_valid

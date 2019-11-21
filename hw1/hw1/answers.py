@@ -53,28 +53,32 @@ we can set the value of Delta to also be arbitrary.
 
 part3_q2 = r"""
 **Your answer:**
+1. Looking at the images, we can recognize shapes of digits in the actual images that were formerly weights matrices.
+The leftmost one represents the digit 0 in its shape, the second one resembles 1, the next resembles 2 etc.
+We can see that the linear model changes the weights matrices so that higher value (i.e yellow squares) appear
+close to where the line should be, and lower values appear everywhere else. This way, the model is learning to
+predict digits according to the weights matrices - that appear closer to the input.
+If we look at some of the classification error, we can see that oftentimes digits that have a straight vertical
+line can mistakenly be classified as the digit 1, whereas the straight line that characterizes the digit 1 is
+only a part of a bigger picture (can be found, for instance, with the digit 4).
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+2. It is similar to KNN because with KNN we can see that examples that are closer to each other in their features
+tend to be represented with higher values, in this case colored with yellow. Same as here, where a new unseen
+digit (example) that is close to a certain weight image in the colors - is similar to it in the features, and
+therefore will be given the same classification.
 """
 
 part3_q3 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
-
+1. Receiving a training set loss that slowly converges to the minimum (it goes slowly but eventually it converges)
+means that the learning rate that was chosen is a GOOD learning rate. If we look at a learning rate that is
+TOO LOW, with the same number of epochs, we will get too small of a step towards convergence, while it very well
+may be the case that because the step is too small - the loss will never converge and will remain with a high value
+(just because there are not enough epochs. If there were enough, it would have converged).
+If we look at a learning rate that is TOO HIGH, we will get too big of a step towards convergence.
+In this case it very well may be the case that because the step is too big - the loss will never converge and will
+remain with a high value (in this case, the epochs number might not matter, since the minimum point will always
+be missed by the big step).
 """
 
 # ==============
