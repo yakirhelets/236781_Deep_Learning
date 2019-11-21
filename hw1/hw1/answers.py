@@ -79,6 +79,11 @@ If we look at a learning rate that is TOO HIGH, we will get too big of a step to
 In this case it very well may be the case that because the step is too big - the loss will never converge and will
 remain with a high value (in this case, the epochs number might not matter, since the minimum point will always
 be missed by the big step).
+
+2. In general, the higher the training set accuracy, the higher the overfitting is, and vice versa. In addition,
+the higher the test set accuracy, the better the generalization and the lower the overfitting is.
+That is because if we make our model too predictive towards the training set, we lose the ability to generalize
+and therefore the training set accuracy will be high but the test set accuracy will be low.
 """
 
 # ==============

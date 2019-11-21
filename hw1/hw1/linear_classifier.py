@@ -125,7 +125,7 @@ class LinearClassifier(object):
                 grad += (weight_decay * self.weights)
                 self.weights -= (learn_rate * grad)
 
-            print(accuracy)
+            print(acc_list)
             train_res[0].append(np.average(acc_list))
             train_res[1].append(np.average(loss_list))
 
