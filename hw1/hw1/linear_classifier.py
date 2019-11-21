@@ -92,7 +92,9 @@ class LinearClassifier(object):
         for epoch_idx in range(max_epochs):
             total_correct = 0
             average_loss = 0
-
+            print("-------------")
+            print(epoch_idx)
+            print("-------------")
             # TODO:
             #  Implement model training loop.
             #  1. At each epoch, evaluate the model on the entire training set
@@ -106,16 +108,16 @@ class LinearClassifier(object):
 
             # ====== YOUR CODE: ======
 
-            dl_train_new = torch.utils.data.DataLoader(dataset=dl_train.dataset, batch_size=dl_train.batch_size,
-                                                       num_workers=dl_train.num_workers)
-            dl_valid_new = torch.utils.data.DataLoader(dataset=dl_valid.dataset, batch_size=dl_valid.batch_size,
-                                                       num_workers=dl_valid.num_workers)
+            # dl_train_new = torch.utils.data.DataLoader(dataset=dl_train.dataset, batch_size=dl_train.batch_size,
+            #                                            num_workers=dl_train.num_workers)
+            # dl_valid_new = torch.utils.data.DataLoader(dataset=dl_valid.dataset, batch_size=dl_valid.batch_size,
+            #                                            num_workers=dl_valid.num_workers)
 
             # Evaluation on the training set
             acc_list = []
             loss_list = []
 
-            for (x, y) in dl_train_new:
+            for (x, y) in dl_train:
                 y_pred, class_scores = self.predict(x)
                 accuracy = LinearClassifier.evaluate_accuracy(y, y_pred)
                 acc_list.append(accuracy)
@@ -126,22 +128,24 @@ class LinearClassifier(object):
                 grad = loss_fn.grad()
                 grad += (weight_decay * self.weights)
                 self.weights -= (learn_rate * grad)
-                # self.weights = self.weights - (learn_rate * grad + weight_decay * self.weights)
+                # reg_term = self.weights * weight_decay
+                # self.weights = self.weights - (learn_rate * grad + reg_term)
 
-            print(np.average(acc_list))
+            print(acc_list)
             train_res[0].append(np.average(acc_list))
             train_res[1].append(np.average(loss_list))
 
             # Evaluation on the validation set
             acc_list = []
             loss_list = []
-            for (x, y) in dl_valid_new:
+            for (x, y) in dl_valid:
                 y_pred, class_scores = self.predict(x)
                 accuracy = LinearClassifier.evaluate_accuracy(y, y_pred)
                 acc_list.append(accuracy)
                 curr_loss = loss_fn.loss(x, y, class_scores, y_pred)
                 loss_list.append(curr_loss)
 
+            print(acc_list)
             valid_res[0].append(np.average(acc_list))
             valid_res[1].append(np.average(loss_list))
 
@@ -190,7 +194,7 @@ def hyperparams():
     #  to pass.
     # ====== YOUR CODE: ======
     hp['weight_std'] = 0.01
-    hp['learn_rate'] = 0.1
+    hp['learn_rate'] = 10
     hp['weight_decay'] = 1
     # ========================
 
