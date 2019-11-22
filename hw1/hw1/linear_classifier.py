@@ -105,15 +105,15 @@ class LinearClassifier(object):
 
             # ====== YOUR CODE: ======
 
-            dl_train_new = torch.utils.data.DataLoader(dataset=dl_train.dataset, batch_size=dl_train.batch_size,
-                                                       num_workers=dl_train.num_workers)
-            dl_valid_new = torch.utils.data.DataLoader(dataset=dl_valid.dataset, batch_size=dl_valid.batch_size,
-                                                       num_workers=dl_valid.num_workers)
+            # dl_train_new = torch.utils.data.DataLoader(dataset=dl_train.dataset, batch_size=dl_train.batch_size,
+            #                                            num_workers=dl_train.num_workers)
+            # dl_valid_new = torch.utils.data.DataLoader(dataset=dl_valid.dataset, batch_size=dl_valid.batch_size,
+            #                                            num_workers=dl_valid.num_workers)
 
             # Evaluation on the training set
             acc_list = []
             loss_list = []
-            for (x, y) in dl_train_new:
+            for (x, y) in dl_train:
                 y_pred, class_scores = self.predict(x)
                 accuracy = LinearClassifier.evaluate_accuracy(y, y_pred)
                 acc_list.append(accuracy)
@@ -132,7 +132,7 @@ class LinearClassifier(object):
             # Evaluation on the validation set
             acc_list = []
             loss_list = []
-            for (x, y) in dl_valid_new:
+            for (x, y) in dl_valid:
                 y_pred, class_scores = self.predict(x)
                 accuracy = LinearClassifier.evaluate_accuracy(y, y_pred)
                 acc_list.append(accuracy)
@@ -186,9 +186,9 @@ def hyperparams():
     #  Manually tune the hyperparameters to get the training accuracy test
     #  to pass.
     # ====== YOUR CODE: ======
-    hp['weight_std'] = 0.01
-    hp['learn_rate'] = 1
-    hp['weight_decay'] = 0.1
+    hp['weight_std'] = 0.001
+    hp['learn_rate'] = 0.1
+    hp['weight_decay'] = 0.001
     # ========================
 
     return hp
