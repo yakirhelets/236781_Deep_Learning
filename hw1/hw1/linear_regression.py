@@ -242,7 +242,6 @@ def cv_best_hyperparams(model: BaseEstimator, X, y, k_folds,
     #  - You can use MSE or R^2 as a score.
 
     # ====== YOUR CODE: ======
-    # TODO consider changing that to code that generates key names automatically from model.get_params()
     params_to_try_dict = {'bostonfeaturestransformer__degree': degree_range, 'linearregressor__reg_lambda': lambda_range}
     grid_search_cv = sklearn.model_selection.GridSearchCV(estimator=model, param_grid=params_to_try_dict,
                                                                 iid=True, cv=k_folds)

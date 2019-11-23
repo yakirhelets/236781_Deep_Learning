@@ -55,35 +55,51 @@ part3_q2 = r"""
 **Your answer:**
 1. Looking at the images, we can recognize shapes of digits in the actual images that were formerly weights matrices.
 The leftmost one represents the digit 0 in its shape, the second one resembles 1, the next resembles 2 etc.
-We can see that the linear model changes the weights matrices so that higher value (i.e yellow squares) appear
-close to where the line should be, and lower values appear everywhere else. This way, the model is learning to
+We can see that the linear model changes the weights matrices so that certain values (colors) appear
+close to where the line should be, and other values appear everywhere else. This way, the model is learning to
 predict digits according to the weights matrices - that appear closer to the input.
-If we look at some of the classification error, we can see that oftentimes digits that have a straight vertical
-line can mistakenly be classified as the digit 1, whereas the straight line that characterizes the digit 1 is
-only a part of a bigger picture (can be found, for instance, with the digit 4).
+If we look at the classification errors, we can see that the digit sample (that was predicted incorrectly)
+resembles in its writing to the weights matrix that correspond to the incorrect classification, and thus the
+model mistakenly predicted incorrectly. This phenomenon might happen when a sample has noise in it, and in this
+case this noise simply means a digit that its writing might be somewhat unclear. For instance, we can see that
+one digit was 9, and was predicted to be 8. Looking closely at it we reveal that the lower part of the 9 looks
+almost to 8.
 
 2. It is similar to KNN because with KNN we can see that examples that are closer to each other in their features
-tend to be represented with higher values, in this case colored with yellow. Same as here, where a new unseen
-digit (example) that is close to a certain weight image in the colors - is similar to it in the features, and
-therefore will be given the same classification.
+tend to be represented with certain values (colors). Same as here, where a new unseen digit (sample) that is
+close to a certain weight image in the colors - is similar to it in the features, and therefore will be given
+the same classification.
 """
 
 part3_q3 = r"""
 **Your answer:**
-1. Receiving a training set loss that slowly converges to the minimum (it goes slowly but eventually it converges)
-means that the learning rate that was chosen is a GOOD learning rate. If we look at a learning rate that is
-TOO LOW, with the same number of epochs, we will get too small of a step towards convergence, while it very well
-may be the case that because the step is too small - the loss will never converge and will remain with a high value
-(just because there are not enough epochs. If there were enough, it would have converged).
-If we look at a learning rate that is TOO HIGH, we will get too big of a step towards convergence.
-In this case it very well may be the case that because the step is too big - the loss will never converge and will
-remain with a high value (in this case, the epochs number might not matter, since the minimum point will always
-be missed by the big step).
+1. Based on the graph of the training set loss, we would say that the learning rate that we chose is good.
+Receiving a training set loss that slowly converges to the minimum (it goes slowly but eventually it converges)
+means that the learning rate that was chosen is a GOOD learning rate. In our case, the prediction did not reach
+optimality, however the accuracy is very good (over 85%) and we can conclude that the learning rate was good
+for the given number of epochs.
+If we look at a learning rate that is TOO LOW, with the same number of epochs, we will get too small of a step
+towards convergence, while it very well may be the case that because the step is too small - the loss will never
+converge and will remain with a high value (just because there are not enough epochs. If there were enough,
+it would have converged). If we look at a learning rate that is TOO HIGH, we will get too big of a step towards
+convergence. In this case it very well may be the case that because the step is too big - the loss will never
+converge and will remain with a high value (in this case, the epochs number might not matter, since the minimum
+point will always be missed by the big step).
 
 2. In general, the higher the training set accuracy, the higher the overfitting is, and vice versa. In addition,
 the higher the test set accuracy, the better the generalization and the lower the overfitting is.
 That is because if we make our model too predictive towards the training set, we lose the ability to generalize
 and therefore the training set accuracy will be high but the test set accuracy will be low.
+In our case, based on the graph of the training and test set accuracy, we would say that the model is first of
+all neither highly overfitted to the training set nor highly underfitted to it, because in the former case
+we will indicate a high training set accuracy result but low test set accuracy result, and in the latter case
+the opposite, and we are not indicating either (neither of the graphs is low).
+Regarding the other options, because we are noticing that the training set's accuracy goes a little bit above
+the test set accuracy (in the graph), we can conclude that our model is slightly overfitted, since it performs
+better on the training set than on the test set, which is a result of a small overfitting of the training process.
+It means that our results on the training set are very good (in this case), but we are not able to generalize
+**as well** and get high results like these - in the test set (although the results on the test set are still very
+good as well).
 """
 
 # ==============
