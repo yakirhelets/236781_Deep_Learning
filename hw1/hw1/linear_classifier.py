@@ -49,7 +49,7 @@ class LinearClassifier(object):
         y_pred, class_scores = None, None
         # ====== YOUR CODE: ======
         class_scores = x.mm(self.weights)
-        y_pred = torch.as_tensor(class_scores.mode(dim=1)[-1])
+        _, y_pred = torch.max(class_scores, dim=1)
         # ========================
         return y_pred, class_scores
 
@@ -105,11 +105,6 @@ class LinearClassifier(object):
 
             # ====== YOUR CODE: ======
 
-            # dl_train_new = torch.utils.data.DataLoader(dataset=dl_train.dataset, batch_size=dl_train.batch_size,
-            #                                            num_workers=dl_train.num_workers)
-            # dl_valid_new = torch.utils.data.DataLoader(dataset=dl_valid.dataset, batch_size=dl_valid.batch_size,
-            #                                            num_workers=dl_valid.num_workers)
-
             # Evaluation on the training set
             acc_list = []
             loss_list = []
@@ -118,14 +113,16 @@ class LinearClassifier(object):
                 accuracy = LinearClassifier.evaluate_accuracy(y, y_pred)
                 acc_list.append(accuracy)
                 curr_loss = loss_fn.loss(x, y, class_scores, y_pred)
+                # Loss + reg term
+                curr_loss += (0.5 * weight_decay * torch.norm(self.weights, 2))
                 loss_list.append(curr_loss)
 
                 # Computing the gradient
                 grad = loss_fn.grad()
                 grad += (weight_decay * self.weights)
+                # Loss + reg term
                 self.weights -= (learn_rate * grad)
 
-            print(acc_list)
             train_res[0].append(np.average(acc_list))
             train_res[1].append(np.average(loss_list))
 
