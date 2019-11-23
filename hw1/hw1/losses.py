@@ -108,9 +108,8 @@ class SVMHingeLoss(ClassifierLoss):
         C = self.grad_ctx['X_scores_cols']
         x = self.grad_ctx['x']
         y = self.grad_ctx['y']
-        G = torch.zeros([N, C])
 
-        G = M
+        G = torch.zeros_like(M)
 
         # j != y_i => grad = x_i
         G[M > 0] = 1
