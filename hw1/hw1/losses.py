@@ -54,28 +54,16 @@ class SVMHingeLoss(ClassifierLoss):
         # ====== YOUR CODE: ======
         marginalLoss = torch.zeros_like(x_scores)
 
-        # TODO: refactor without explicit loops
-        example_idx = 0
-        for classification in y:
-            marginalLoss[example_idx] = x_scores[example_idx] - x_scores[example_idx][classification] + self.delta
-            marginalLoss[example_idx][classification] -= self.delta
-            # print("example[", example_idx, "] scores: ", x_scores[example_idx])
-            # print("example[", example_idx, "] real class score: ", x_scores[example_idx][classification])
-            # print("example[", example_idx, "] marginal loss: ", marginalLoss[example_idx])
-            example_idx += 1
+        y_i_scores = x_scores[torch.LongTensor(list(range(x_scores.shape[0]))), y] # the correct prediction score for every example
+        # print(y_i_scores.shape)
 
         zeros_mat = torch.zeros_like(marginalLoss)
-        loss = torch.zeros([1,])
+        marginalLoss = torch.max(zeros_mat, x_scores - (y_i_scores.t())[:, None] + self.delta)
+        marginalLoss[torch.LongTensor(list(range(x_scores.shape[0]))),y] = 0
 
-        L_i = torch.max(marginalLoss, zeros_mat)
-
-        # TODO: refactor without explicit loops
-        # for classification in L_i:
-            # loss += torch.sum(classification)
-            # loss -= self.delta
-        loss = torch.sum(L_i)
+        loss = torch.mean(torch.sum(marginalLoss, dim=1))
         
-        loss /= x_scores.shape[0]
+        # loss /= x_scores.shape[0]
         # ========================
 
         # TODO: Save what you need for gradient calculation in self.grad_ctx
@@ -105,7 +93,6 @@ class SVMHingeLoss(ClassifierLoss):
         # ====== YOUR CODE: ======
         M = self.grad_ctx['marginalLoss']
         N = self.grad_ctx['X_rows_len']
-        C = self.grad_ctx['X_scores_cols']
         x = self.grad_ctx['x']
         y = self.grad_ctx['y']
 
