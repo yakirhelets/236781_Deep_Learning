@@ -58,6 +58,10 @@ class SVMHingeLoss(ClassifierLoss):
         example_idx = 0
         for classification in y:
             marginalLoss[example_idx] = x_scores[example_idx] - x_scores[example_idx][classification] + self.delta
+            marginalLoss[example_idx][classification] -= self.delta
+            # print("example[", example_idx, "] scores: ", x_scores[example_idx])
+            # print("example[", example_idx, "] real class score: ", x_scores[example_idx][classification])
+            # print("example[", example_idx, "] marginal loss: ", marginalLoss[example_idx])
             example_idx += 1
 
         zeros_mat = torch.zeros_like(marginalLoss)
@@ -66,9 +70,10 @@ class SVMHingeLoss(ClassifierLoss):
         L_i = torch.max(marginalLoss, zeros_mat)
 
         # TODO: refactor without explicit loops
-        for classification in L_i:
-            loss += torch.sum(classification)
-            loss -= self.delta
+        # for classification in L_i:
+            # loss += torch.sum(classification)
+            # loss -= self.delta
+        loss = torch.sum(L_i)
         
         loss /= x_scores.shape[0]
         # ========================
@@ -105,16 +110,17 @@ class SVMHingeLoss(ClassifierLoss):
         y = self.grad_ctx['y']
         G = torch.zeros([N, C])
 
-        for i in range(M.shape[0]):
-            for j in range(M.shape[1]):
-                if j != y[i]:
-                    if M[i][j] > 0:
-                        G[i][j] = 1
+        G = M
 
-        for i in range(G.shape[0]):
-            G[i][y[i]] = torch.sum(G[i]) * (-1)
+        # j != y_i => grad = x_i
+        G[M > 0] = 1
+        row_sum = torch.sum(G, axis=1)
+        tensorlist = torch.LongTensor(list(range(N)))
 
-        grad = np.matmul(x.t(), G)
+        # j == y_i => grad = -x_i * sum[m_i,j > 0]
+        G[tensorlist, y] = (-1) * row_sum.t()
+
+        grad = torch.mm(x.t(), G)
 
         grad /= N
         # ========================
