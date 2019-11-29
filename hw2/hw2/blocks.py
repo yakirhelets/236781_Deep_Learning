@@ -200,7 +200,8 @@ class Sigmoid(Block):
         #  Save whatever you need into
         #  grad_cache.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        out = 1 / (1 + torch.exp(-x))
+        self.grad_cache['sigmoid_x'] = out
         # ========================
 
         return out
@@ -213,7 +214,8 @@ class Sigmoid(Block):
 
         # TODO: Implement gradient w.r.t. the input x
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        sigmoid_x = self.grad_cache['sigmoid_x']
+        dx = sigmoid_x * (1 - sigmoid_x)
         # ========================
 
         return dx
