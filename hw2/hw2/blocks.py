@@ -103,7 +103,7 @@ class Linear(Block):
         # TODO: Compute the affine transform
         # ====== YOUR CODE: ======
         x_w_t = torch.mm(x, self.w.t())
-        out = x_w_t + self.b[None,:]
+        out = x_w_t + self.b
         # ========================
 
         self.grad_cache['x'] = x
@@ -122,7 +122,10 @@ class Linear(Block):
         #   - db, the gradient of the loss with respect to b
         #  You should accumulate gradients in dw and db.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.dw += torch.mm(dout.t(), x)
+        self.db += torch.sum(dout, dim=0)
+        dx = torch.mm(dout, self.w)
+
         # ========================
 
         return dx
