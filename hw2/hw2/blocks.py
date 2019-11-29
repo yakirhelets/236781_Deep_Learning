@@ -167,7 +167,8 @@ class ReLU(Block):
 
         # TODO: Implement gradient w.r.t. the input x
         # ====== YOUR CODE: ======
-        dx = torch.tensor(x > 0, dtype=torch.uint8)
+        # dx = torch.tensor(x > 0., dtype=torch.uint8) # grad ReLu
+        dx = torch.max(torch.zeros_like(x), x) # ReLu, seems to work...
         # ========================
 
         return dx
