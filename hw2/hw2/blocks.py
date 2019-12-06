@@ -167,8 +167,9 @@ class ReLU(Block):
 
         # TODO: Implement gradient w.r.t. the input x
         # ====== YOUR CODE: ======
-        # dx = torch.tensor(x > 0., dtype=torch.uint8) # grad ReLu
-        dx = torch.max(torch.zeros_like(x), x) # ReLu, seems to work...
+        # derivative wrt parameters * dout
+        dx = dout.clone()
+        dx[x < 0] = 0
         # ========================
 
         return dx
@@ -200,7 +201,7 @@ class Sigmoid(Block):
         #  Save whatever you need into
         #  grad_cache.
         # ====== YOUR CODE: ======
-        out = 1 / (1 + torch.exp(-x))
+        out = 1.0 / (1.0 + torch.exp(-x))
         self.grad_cache['sigmoid_x'] = out
         # ========================
 
@@ -214,8 +215,9 @@ class Sigmoid(Block):
 
         # TODO: Implement gradient w.r.t. the input x
         # ====== YOUR CODE: ======
+        # derivative wrt parameters * dout
         sigmoid_x = self.grad_cache['sigmoid_x']
-        dx = sigmoid_x * (1 - sigmoid_x)
+        dx = (sigmoid_x * (1.0 - sigmoid_x)) * dout
         # ========================
 
         return dx
