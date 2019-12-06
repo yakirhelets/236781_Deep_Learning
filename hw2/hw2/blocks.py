@@ -269,8 +269,10 @@ class CrossEntropyLoss(Block):
             correct_class = y[i]
             tmp_loss = log_part - x[i, correct_class]
             losses.append(tmp_loss)
-        losses_tensor = torch.FloatTensor(losses)
+        losses_tensor = torch.tensor(data=losses)
         loss = torch.mean(losses_tensor)
+        loss.requires_grad = True
+
         # ========================
 
         self.grad_cache['x'] = x
@@ -289,7 +291,28 @@ class CrossEntropyLoss(Block):
 
         # TODO: Calculate the gradient w.r.t. the input x
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        D = x.shape[1]
+        dx = x.clone()
+
+        # for i in range(N):
+        #     for j in range(D):
+        #         if i == j:
+        #             dx[i, j] = y[i] * (1.0 - y[i])
+        #         else:
+        #             dx[i, j] = -y[i] * y[j]
+        #
+        # print(dx)
+
+
+        for i in range(N):
+            correct_class = y[i]
+            sigma_e_row = 0
+            for j in range(D):
+                sigma_e_row += torch.exp(dx[i, j])
+            for k in range(D):
+                y_indicator = 1 if correct_class == k else 0
+                dx[i, k] = (torch.exp(dx[i, k]) / sigma_e_row) - y_indicator
+
         # ========================
 
         return dx
