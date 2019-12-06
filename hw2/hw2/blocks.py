@@ -261,7 +261,16 @@ class CrossEntropyLoss(Block):
         #  Tip: to get a different column from each row of a matrix tensor m,
         #  you can index it with m[range(num_rows), list_of_cols].
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        losses = []
+
+        for i in range(N):
+            row = x[i,:]
+            log_part = torch.log(torch.sum(torch.exp(row)))
+            correct_class = y[i]
+            tmp_loss = log_part - x[i, correct_class]
+            losses.append(tmp_loss)
+        losses_tensor = torch.FloatTensor(losses)
+        loss = torch.mean(losses_tensor)
         # ========================
 
         self.grad_cache['x'] = x
