@@ -169,7 +169,9 @@ class ReLU(Block):
         # ====== YOUR CODE: ======
         # derivative wrt parameters * dout
         dx = dout.clone()
-        dx[x < 0] = 0
+        dx[dx <= 0] = 0
+        dx[dx > 0] = 1
+        dx = dx * dout
         # ========================
 
         return dx
@@ -293,6 +295,7 @@ class CrossEntropyLoss(Block):
         # ====== YOUR CODE: ======
         D = x.shape[1]
         dx = x.clone()
+        # dx.requires_grad = True
 
         # for i in range(N):
         #     for j in range(D):
@@ -301,17 +304,19 @@ class CrossEntropyLoss(Block):
         #         else:
         #             dx[i, j] = -y[i] * y[j]
         #
-        # print(dx)
-
+        # dx = dx / N
 
         for i in range(N):
             correct_class = y[i]
             sigma_e_row = 0
             for j in range(D):
-                sigma_e_row += torch.exp(dx[i, j])
+                sigma_e_row += torch.exp(x[i, j])
             for k in range(D):
                 y_indicator = 1 if correct_class == k else 0
-                dx[i, k] = (torch.exp(dx[i, k]) / sigma_e_row) - y_indicator
+                dx[i, k] = (torch.exp(x[i, k]) / sigma_e_row) - y_indicator
+
+        dx = dx * dout * (1/N)
+
 
         # ========================
 
@@ -371,7 +376,12 @@ class Sequential(Block):
         # TODO: Implement the forward pass by passing each block's output
         #  as the input of the next.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        for i in range(len(self.blocks)):
+            if i == 0:
+                out = self.blocks[i].forward(x, **kw)
+            else:
+                out = self.blocks[i].forward(out, **kw)
+
         # ========================
 
         return out
@@ -383,7 +393,13 @@ class Sequential(Block):
         #  Each block's input gradient should be the previous block's output
         #  gradient. Behold the backpropagation algorithm in action!
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+
+        for i in reversed(range(len(self.blocks))):
+            if i == (len(self.blocks) - 1):
+                din = self.blocks[i].backward(dout)
+            else:
+                din = self.blocks[i].backward(din)
+
         # ========================
 
         return din
@@ -393,7 +409,9 @@ class Sequential(Block):
 
         # TODO: Return the parameter tuples from all blocks.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        for i in range(len(self.blocks)):
+            params = self.blocks[0].params()
+            params.append(params[0])
         # ========================
 
         return params
@@ -444,7 +462,24 @@ class MLP(Block):
 
         # TODO: Build the MLP architecture as described.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        activation_layer = None
+        if activation == 'relu':
+            activation_layer = ReLU()
+        else:
+            if activation == 'sigmoid':
+                activation_layer = Sigmoid()
+
+        hidden_layers_num = len(hidden_features)
+        first_hidden_in = hidden_features[0]
+        last_hidden_out = hidden_features[hidden_layers_num - 1]
+
+        # Building the actual net
+        blocks.append(Linear(in_features, first_hidden_in))
+        blocks.append(activation_layer)
+        for i in range(hidden_layers_num - 1):
+            blocks.append(Linear(hidden_features[i], hidden_features[i+1]))
+            blocks.append(activation_layer)
+        blocks.append(Linear(last_hidden_out, num_classes))
         # ========================
 
         self.sequence = Sequential(*blocks)
