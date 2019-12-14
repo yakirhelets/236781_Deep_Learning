@@ -73,22 +73,8 @@ class VanillaSGD(Optimizer):
             # Update the gradient according to regularization and then
             # update the parameters tensor.
             # ====== YOUR CODE: ======
-            # print(self.params)
-            # print(p)
-            print(p)
-            # dp = 0.5 * self.reg * p**2
-            # print(torch.autograd.grad(p, dp))
-            # print(dp.grad)
-            print(np.gradient(p))
-            # dp *= 0.5*self.reg
-            # print(dp)
-            # reg_term = 0.5*self.reg*torch.norm(p,2)**2
-            p -= dp
-            # print(grad)
-            # print(dp)
-            # dp = grad
-            print(p)
-            # p = dp
+            dp += self.reg * p
+            p -= 0.5 * dp
             # ========================
 
 
