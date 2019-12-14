@@ -266,7 +266,7 @@ class CrossEntropyLoss(Block):
         losses = []
 
         for i in range(N):
-            row = x[i,:]
+            row = x[i, :]
             log_part = torch.log(torch.sum(torch.exp(row)))
             correct_class = y[i]
             tmp_loss = log_part - x[i, correct_class]
@@ -295,16 +295,6 @@ class CrossEntropyLoss(Block):
         # ====== YOUR CODE: ======
         D = x.shape[1]
         dx = x.clone()
-        # dx.requires_grad = True
-
-        # for i in range(N):
-        #     for j in range(D):
-        #         if i == j:
-        #             dx[i, j] = y[i] * (1.0 - y[i])
-        #         else:
-        #             dx[i, j] = -y[i] * y[j]
-        #
-        # dx = dx / N
 
         for i in range(N):
             correct_class = y[i]
@@ -316,8 +306,6 @@ class CrossEntropyLoss(Block):
                 dx[i, k] = (torch.exp(x[i, k]) / sigma_e_row) - y_indicator
 
         dx = dx * dout * (1/N)
-
-
         # ========================
 
         return dx
