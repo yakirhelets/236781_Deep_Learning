@@ -45,7 +45,37 @@ class ConvClassifier(nn.Module):
         #  Note: If N is not divisible by P, then N mod P additional
         #  CONV->ReLUs should exist at the end, without a MaxPool after them.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        N = len(self.channels)
+        P = self.pool_every
+
+        first_conv_layer = nn.Conv2d(in_channels, self.channels[0], 3)
+        last_conv_layer = nn.Conv2d(self.channels[N-1], self.hidden_dims[0], 3)
+        relu_layer = nn.ReLU()
+        maxpool_layer = nn.MaxPool2d(2)
+
+        additional_layers = N % P
+
+        # first layer
+        layers.append(first_conv_layer)
+        layers.append(relu_layer)
+        # layers.append(maxpool_layer)
+
+        print(N/P)
+        # (N/P - 1) layers
+        for i in range(int(N/P)):
+            for j in range(P - 1):
+                layers.append(nn.Conv2d(self.channels[j], self.channels[j], 3))
+                layers.append(relu_layer)
+            layers.append(maxpool_layer)
+
+        for i in range(additional_layers):
+            layers.append(nn.Conv2d(self.channels[i], self.channels[i], 3))
+            layers.append(relu_layer)
+
+        # last layer
+        # layers.append(last_conv_layer)
+        # layers.append(relu_layer)
+        # layers.append(maxpool_layer)
 
         # ========================
         seq = nn.Sequential(*layers)
@@ -61,7 +91,16 @@ class ConvClassifier(nn.Module):
         #  the first linear layer.
         #  The last Linear layer should have an output dim of out_classes.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        M = len(self.hidden_dims)
+        num_classes = self.out_classes
+        relu_layer = nn.ReLU()
+        last_linear_layer = nn.Linear(self.hidden_dims[M-1], num_classes)
+
+        for i in range(M):
+            layers.append(nn.Linear(self.hidden_dims[i], self.hidden_dims[i]))
+            layers.append(relu_layer)
+        layers.append(last_linear_layer)
+
         # ========================
         seq = nn.Sequential(*layers)
         return seq
@@ -71,7 +110,11 @@ class ConvClassifier(nn.Module):
         #  Extract features from the input, run the classifier on them and
         #  return class scores.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        C = self.in_size[0]
+
+        x = self.feature_extractor(x)
+        x = x.view(-1, self.hidden_dims[0])
+        out = self.classifier(x)
         # ========================
         return out
 
@@ -156,5 +199,5 @@ class YourCodeNet(ConvClassifier):
     #  For example, add batchnorm, dropout, skip connections, change conv
     #  filter sizes etc.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    pass
     # ========================

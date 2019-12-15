@@ -263,17 +263,14 @@ class CrossEntropyLoss(Block):
         #  Tip: to get a different column from each row of a matrix tensor m,
         #  you can index it with m[range(num_rows), list_of_cols].
         # ====== YOUR CODE: ======
-        losses = []
+        sum_loss = 0
 
         for i in range(N):
-            row = x[i,:]
-            log_part = torch.log(torch.sum(torch.exp(row)))
+            log_part = torch.log(torch.sum(torch.exp(x[i,:])))
             correct_class = y[i]
             tmp_loss = log_part - x[i, correct_class]
-            losses.append(tmp_loss)
-        losses_tensor = torch.tensor(data=losses)
-        loss = torch.mean(losses_tensor)
-        loss.requires_grad = True
+            sum_loss += tmp_loss
+        loss = sum_loss / N
 
         # ========================
 
@@ -293,18 +290,8 @@ class CrossEntropyLoss(Block):
 
         # TODO: Calculate the gradient w.r.t. the input x
         # ====== YOUR CODE: ======
-        D = x.shape[1]
-        dx = x.clone()
-        # dx.requires_grad = True
-
-        # for i in range(N):
-        #     for j in range(D):
-        #         if i == j:
-        #             dx[i, j] = y[i] * (1.0 - y[i])
-        #         else:
-        #             dx[i, j] = -y[i] * y[j]
-        #
-        # dx = dx / N
+        dx = torch.zeros_like(x)
+        D = dx.shape[1]
 
         for i in range(N):
             correct_class = y[i]
@@ -315,8 +302,7 @@ class CrossEntropyLoss(Block):
                 y_indicator = 1 if correct_class == k else 0
                 dx[i, k] = (torch.exp(x[i, k]) / sigma_e_row) - y_indicator
 
-        dx = dx * dout * (1/N)
-
+        dx *= dout * (1/N)
 
         # ========================
 
