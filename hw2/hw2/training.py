@@ -189,7 +189,29 @@ class BlocksTrainer(Trainer):
         #  - Optimize params
         #  - Calculate number of correct predictions
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        # model = blocks.MLP(3*32*32, num_classes=10, hidden_features=[128]*3, wstd=hp['wstd'])
+        # loss_fn = blocks.CrossEntropyLoss()
+        # optimizer = optimizers.VanillaSGD(model.params(), learn_rate=hp['lr'], reg=hp['reg'])
+        # add data to the forward() -> loss
+        # enter the result to backward -> grad
+
+        # Forward pass
+        print(X.shape, y.shape)
+        loss = self.loss_fn.forward(X, y)
+        print(loss)
+        # Backward pass
+        X_grad = self.loss_fn.backward()
+        print(X_grad)
+        # Optimize params
+        self.optimizer.step()
+
+        # Calculate number of correct predictions
+        params = self.model.params()
+        print(params)
+        num_correct = 0
+        for i in range(len(y)):
+            if y[i] == params[i]:
+                num_correct += 1
         # ========================
 
         return BatchResult(loss, num_correct)
