@@ -211,7 +211,13 @@ class BlocksTrainer(Trainer):
         #  - Forward pass
         #  - Calculate number of correct predictions
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.optimizer.zero_grad()
+        seq = self.model(X)
+        # Forward pass
+        loss = self.loss_fn.forward(seq, y)
+        # Number of correct predictions
+        _, predictions = torch.max(seq.data, 1)
+        num_correct = (predictions == y).sum().item()
         # ========================
 
         return BatchResult(loss, num_correct)
