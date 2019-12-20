@@ -91,7 +91,18 @@ class Trainer(abc.ABC):
             curr_test_loss = torch.stack(test_result[0]).sum() / len(test_result[0])
             test_loss.append(curr_test_loss)
             
-            # TODO: Early stopping
+            # Early stopping
+            if epoch > 1 and test_loss[len(test_loss)-1] < curr_test_loss:
+                epochs_without_improvement += 1
+            else:
+                epochs_without_improvement = 0
+            
+            if best_acc == None or best_acc < curr_test_accuracy:
+                best_acc = curr_test_accuracy
+
+            if early_stopping != None and early_stopping >= epochs_without_improvement:
+                break
+            
             # TODO: Optional: Implement checkpoints
             # ========================
 
