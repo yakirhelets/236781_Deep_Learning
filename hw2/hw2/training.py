@@ -73,7 +73,26 @@ class Trainer(abc.ABC):
             #    save the model to the file specified by the checkpoints
             #    argument.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            # Train
+            epoch_result = self.train_epoch(dl_train, **kw)
+            
+            curr_accuracy = epoch_result[1]
+            train_acc.append(curr_accuracy)
+
+            curr_loss = torch.stack(epoch_result[0]).sum() / len(epoch_result[0])
+            train_loss.append(curr_loss)
+
+            # Test
+            test_result = self.test_epoch(dl_test, **kw)
+            
+            curr_test_accuracy = test_result[1]
+            test_acc.append(curr_test_accuracy)
+
+            curr_test_loss = torch.stack(test_result[0]).sum() / len(test_result[0])
+            test_loss.append(curr_test_loss)
+            
+            # TODO: Early stopping
+            # TODO: Optional: Implement checkpoints
             # ========================
 
         return FitResult(actual_num_epochs,
