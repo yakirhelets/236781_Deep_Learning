@@ -74,7 +74,7 @@ class VanillaSGD(Optimizer):
             # update the parameters tensor.
             # ====== YOUR CODE: ======
             dp += self.reg * p
-            p -= 0.5 * dp
+            p -= self.learn_rate * dp
             # ========================
 
 

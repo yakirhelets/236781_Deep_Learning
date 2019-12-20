@@ -164,13 +164,13 @@ class ReLU(Block):
         :return: Gradient with respect to block input, shape (N, *)
         """
         x = self.grad_cache['x']
-
+        
         # TODO: Implement gradient w.r.t. the input x
-        # ====== YOUR CODE: ======
+        # ====== YOUR CODE: ====== 
         # derivative wrt parameters * dout
         dx = dout.clone()
-        dx[dx <= 0] = 0
-        dx[dx > 0] = 1
+        dx[x <= 0] = 0
+        dx[x > 0] = 1
         dx = dx * dout
         # ========================
 
@@ -257,7 +257,7 @@ class CrossEntropyLoss(Block):
         N = x.shape[0]
         xmax, _ = torch.max(x, dim=1, keepdim=True)
         x = x - xmax  # for numerical stability
-
+        
         # TODO: Compute the cross entropy loss using the last formula from the
         #  notebook (i.e. directly using the class scores).
         #  Tip: to get a different column from each row of a matrix tensor m,
@@ -327,7 +327,7 @@ class Dropout(Block):
         #  Notice that contrary to previous blocks, this block behaves
         #  differently a according to the current training_mode (train/test).
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        raise NotImplementedError()     
         # ========================
 
         return out
@@ -335,7 +335,7 @@ class Dropout(Block):
     def backward(self, dout):
         # TODO: Implement the dropout backward pass.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        raise NotImplementedError()   
         # ========================
 
         return dx
@@ -395,11 +395,10 @@ class Sequential(Block):
 
         # TODO: Return the parameter tuples from all blocks.
         # ====== YOUR CODE: ======
-        for i in range(len(self.blocks)):
-            params = self.blocks[0].params()
-            params.append(params[0])
+        for block in self.blocks:
+            params += block.params()
         # ========================
-
+        
         return params
 
     def train(self, training_mode=True):
@@ -444,27 +443,33 @@ class MLP(Block):
         activation function to use between linear layers.
         :param: Dropout probability. Zero means no dropout.
         """
-        blocks = []
-
+        blocks = []     
+           
         # TODO: Build the MLP architecture as described.
         # ====== YOUR CODE: ======
         activation_layer = None
         if activation == 'relu':
             activation_layer = ReLU()
-        else:
-            if activation == 'sigmoid':
-                activation_layer = Sigmoid()
+        elif activation == 'sigmoid':
+            activation_layer = Sigmoid()
 
         hidden_layers_num = len(hidden_features)
         first_hidden_in = hidden_features[0]
         last_hidden_out = hidden_features[hidden_layers_num - 1]
 
         # Building the actual net
+        # In features
         blocks.append(Linear(in_features, first_hidden_in))
         blocks.append(activation_layer)
+        # Hidden features
         for i in range(hidden_layers_num - 1):
             blocks.append(Linear(hidden_features[i], hidden_features[i+1]))
-            blocks.append(activation_layer)
+            # blocks.append(activation_layer)
+            if activation == 'relu':
+                blocks.append(ReLU())
+            elif activation == 'sigmoid':
+                blocks.append(Sigmoid())
+            
         blocks.append(Linear(last_hidden_out, num_classes))
         # ========================
 
@@ -484,3 +489,4 @@ class MLP(Block):
 
     def __repr__(self):
         return f'MLP, {self.sequence}'
+        
