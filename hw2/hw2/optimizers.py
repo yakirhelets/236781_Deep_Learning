@@ -109,7 +109,7 @@ class MomentumSGD(Optimizer):
             idx = self.param_to_idx[(p, dp)]
             # Remove old values from dict
             del self.param_to_idx[(p, dp)]
-            
+
             # Gradient reg
             dp += self.reg * p
             # Velocity update
@@ -139,7 +139,8 @@ class RMSProp(Optimizer):
 
         # TODO: Add your own initializations as needed.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.rms_prop = [torch.zeros_like(dp) for p, dp in params]
+        self.param_to_idx = dict(zip(self.params, range(len(self.rms_prop))))
         # ========================
 
     def step(self):
@@ -152,5 +153,22 @@ class RMSProp(Optimizer):
             # average of it's previous gradients. Use it to update the
             # parameters tensor.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            # self.learn_rate
+            # self.reg
+            # self.decay
+            # self.eps
+
+            idx = self.param_to_idx[(p, dp)]
+            # Remove old values from dict
+            del self.param_to_idx[(p, dp)]
+
+            # Gradient reg
+            dp += self.reg * p
+            # rms_prop update
+            self.rms_prop[idx] = self.decay * self.rms_prop[idx] + (1-self.decay)*(dp**2)
+            # Theta update
+            p -= dp*(self.learn_rate / torch.sqrt(self.rms_prop[idx] + self.eps))
+            
+            # Add new values to dict
+            self.param_to_idx[(p, dp)] = idx
             # ========================
