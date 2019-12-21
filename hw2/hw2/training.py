@@ -278,6 +278,7 @@ class TorchTrainer(Trainer):
         num_correct += (predicted == y).sum().item()
 
         loss = self.loss_fn(outputs, y)
+        [i.item() for i in loss] # TODO add maybe to other trainers
         loss.backward()
         self.optimizer.step()
         # ========================
