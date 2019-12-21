@@ -100,7 +100,7 @@ class Trainer(abc.ABC):
             if best_acc == None or best_acc < curr_test_accuracy:
                 best_acc = curr_test_accuracy
 
-            if early_stopping != None and early_stopping >= epochs_without_improvement:
+            if early_stopping != None and early_stopping <= epochs_without_improvement:
                 break
             
             # TODO: Optional: Implement checkpoints
