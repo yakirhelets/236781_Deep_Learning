@@ -64,7 +64,29 @@ def run_experiment(run_name, out_dir='./results', seed=None, device=None,
     #   for you automatically.
     fit_res = None
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    # FIRST PART
+    K = filters_per_layer
+    L = layers_per_block
+
+    channels = []
+    for i in range(len(K)):
+        for j in range(L):
+            channels.append(K[i])
+
+    model = model_cls(in_size=ds_train[0][0].shape, out_classes=10, channels=channels, pool_every=pool_every, hidden_dims=hidden_dims)
+
+    # Switch model to cuda
+    model = model.to(device)
+    loss_fn = torch.nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+
+    # SECOND PART
+    dl_train = torch.utils.data.DataLoader(ds_train, bs_train, shuffle=True)
+    dl_test = torch.utils.data.DataLoader(ds_test, bs_test, shuffle=False)
+
+    trainer = training.TorchTrainer(model, loss_fn, optimizer, device)
+    fit_res = trainer.fit(dl_train, dl_test, epochs, checkpoints, early_stopping, **kw)
+
     # ========================
 
     save_experiment(run_name, out_dir, cfg, fit_res)

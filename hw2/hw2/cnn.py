@@ -58,7 +58,6 @@ class ConvClassifier(nn.Module):
 
         dim_count = 0
 
-        # for i in range(int(N/P)):
         for j in range(first_layers):
             layers.append(nn.Conv2d(self.channels[dim_count], self.channels[dim_count+1], kernel_size=3, padding=1))
             layers.append(nn.ReLU())
@@ -114,7 +113,6 @@ class ConvClassifier(nn.Module):
         #  return class scores.
         # ====== YOUR CODE: ======
         y = self.feature_extractor(x)
-        print(y.shape)
         y = y.view(y.shape[0], -1)
         out = self.classifier(y)
         # ========================
@@ -158,16 +156,16 @@ class ResidualBlock(nn.Module):
         L = len(channels)
 
         main_layers_list = []
-
         main_layers_list.append(nn.Conv2d(in_channels, channels[0], kernel_size=kernel_sizes[0], padding=(int((kernel_sizes[0]-1)/2))))
-        main_layers_list.append(nn.BatchNorm2d(channels[0])) if batchnorm else None
         main_layers_list.append(nn.Dropout2d(dropout))
+        main_layers_list.append(nn.BatchNorm2d(channels[0])) if batchnorm else None
         main_layers_list.append(nn.ReLU())
+
         for c in range(L - 1):
             main_layers_list.append(nn.Conv2d(channels[c], channels[c+1], kernel_size=kernel_sizes[c+1], padding=(int((kernel_sizes[c+1]-1)/2))))
             if c != L-2:
-                main_layers_list.append(nn.BatchNorm2d(channels[c+1])) if batchnorm else None
                 main_layers_list.append(nn.Dropout2d(dropout))
+                main_layers_list.append(nn.BatchNorm2d(channels[c+1])) if batchnorm else None
                 main_layers_list.append(nn.ReLU())
 
         sc_layers_list = []
@@ -209,23 +207,26 @@ class ResNetClassifier(ConvClassifier):
         N = len(self.channels)
         P = self.pool_every
 
-        relu_layer = nn.ReLU()
-        maxpool_layer = nn.MaxPool2d(2)
-
         additional_layers = N % P
-        addition_res_in = (P * int((N/P)))
 
-        for i in range(int(N / P)):
+        layers.append(ResidualBlock(in_channels, self.channels[0:P], [3] * P))
+        layers.append(nn.MaxPool2d(kernel_size=2))
+
+        dim_count = 0
+
+        for i in range(int((N-P) / P)):
             # res net
-            res = ResidualBlock(in_channels, self.channels[i*P:(i+1)*P], [3]*P)
-            layers.append(res)
-            layers.append(maxpool_layer)
+            layers.append(ResidualBlock(self.channels[dim_count], self.channels[(i+1)*P:(i+2)*P], [3]*P))
+            layers.append(nn.MaxPool2d(kernel_size=2))
+            dim_count += P
+
+        last_ch_used = N - additional_layers - 1
 
         if additional_layers != 0:
             # Final res net from first that was not covered to last
-            last_res = ResidualBlock(self.channels[addition_res_in-1], self.channels[addition_res_in:], [3]*(N-addition_res_in))
-            layers.append(last_res)
-            layers.append(relu_layer)
+            layers.append(ResidualBlock(self.channels[last_ch_used], self.channels[last_ch_used+1:], [3]*(len(self.channels[last_ch_used+1:]))))
+
+
         # ========================
         seq = nn.Sequential(*layers)
         return seq
