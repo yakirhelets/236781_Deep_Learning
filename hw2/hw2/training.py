@@ -79,7 +79,7 @@ class Trainer(abc.ABC):
             curr_accuracy = epoch_result[1]
             train_acc.append(curr_accuracy)
 
-            curr_loss = torch.stack(epoch_result[0]).sum() / len(epoch_result[0])
+            curr_loss = torch.stack(epoch_result[0]).sum().item() / len(epoch_result[0])
             train_loss.append(curr_loss)
 
             # Test
@@ -88,7 +88,7 @@ class Trainer(abc.ABC):
             curr_test_accuracy = test_result[1]
             test_acc.append(curr_test_accuracy)
 
-            curr_test_loss = torch.stack(test_result[0]).sum() / len(test_result[0])
+            curr_test_loss = torch.stack(test_result[0]).sum().item() / len(test_result[0])
             test_loss.append(curr_test_loss)
             
             # Early stopping
@@ -269,18 +269,28 @@ class TorchTrainer(Trainer):
         #  - Optimize params
         #  - Calculate number of correct predictions
         # ====== YOUR CODE: ======
-        num_correct = 0
+        # num_correct = 0
 
+        # self.optimizer.zero_grad()
+        # outputs = self.model(X)
+        # outputs = outputs.view(X.shape[0], -1)
+        # _, predicted = torch.max(outputs.data, 1)
+        # num_correct += (predicted == y).sum().item()
+
+        # loss = self.loss_fn(outputs, y)
+        # [i.item() for i in loss] # TODO add maybe to other trainers
+        # loss.backward()
+        # self.optimizer.step()
         self.optimizer.zero_grad()
-        outputs = self.model(X)
-        outputs = outputs.view(X.shape[0], -1)
-        _, predicted = torch.max(outputs.data, 1)
-        num_correct += (predicted == y).sum().item()
-
-        loss = self.loss_fn(outputs, y)
-        [i.item() for i in loss] # TODO add maybe to other trainers
+        seq = self.model(X)
+        # Forward pass
+        loss = self.loss_fn(seq, y)
         loss.backward()
+        # Optimize params
         self.optimizer.step()
+        # Number of correct predictions
+        _, predictions = torch.max(seq.data, 1)
+        num_correct = (predictions == y).sum().item()
         # ========================
 
         return BatchResult(loss, num_correct)

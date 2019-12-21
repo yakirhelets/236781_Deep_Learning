@@ -153,11 +153,6 @@ class RMSProp(Optimizer):
             # average of it's previous gradients. Use it to update the
             # parameters tensor.
             # ====== YOUR CODE: ======
-            # self.learn_rate
-            # self.reg
-            # self.decay
-            # self.eps
-
             idx = self.param_to_idx[(p, dp)]
             # Remove old values from dict
             del self.param_to_idx[(p, dp)]

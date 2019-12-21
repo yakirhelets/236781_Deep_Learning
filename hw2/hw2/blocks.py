@@ -329,9 +329,11 @@ class Dropout(Block):
         # ====== YOUR CODE: ======
         if self.training_mode:
             self.mask = torch.rand(x.shape) > self.p
-            out = x.where(self.mask, torch.zeros_like(x)) * (1.0/(1.0 - self.p))
+            # training activation scaling
+            self.mask = self.mask.float() * (1.0 - self.p)
+            out = x * self.mask * (1.0/(1.0 - self.p))
         else:
-            out = x * (1.0 - self.p)
+            out = x
         # ========================
 
         return out
@@ -340,9 +342,9 @@ class Dropout(Block):
         # TODO: Implement the dropout backward pass.
         # ====== YOUR CODE: ======
         if self.training_mode:
-            dx = dout.where(self.mask, torch.zeros_like(dout)) * (1.0/(1.0 - self.p))
+            dx = dout * self.mask * (1.0/(1.0 - self.p))
         else:
-            dx = dout * (1.0 - self.p)
+            dx = dout
         # ========================
 
         return dx
