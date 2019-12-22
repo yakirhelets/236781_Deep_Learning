@@ -49,14 +49,14 @@ def part2_dropout_hp():
 
 part2_q1 = r"""
 **Your answer:**
+1. In the graph, we can see that the accuracy with dropout=0.4 is greater than dropout=0, and dropout=0 is greater than dropout=0.8.
+The results are matching our expectations since some dropout improves the generalization of the model (i.e less likely to overfit).
+In our case, the training set is relatively small in comparison to the test set, thus more likely to overfit. Therefore we can see
+in the results that no dropout produce lesser results than some dropout (dropout=0.4).
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+2. We can see that low-dropout settings produce much higher results than high-dropout settings. In fact, the high-dropout setting
+shows lesser results than no-dropout settings. The explanation for this is that too much dropout (in our case we're dropping 80% of the neurons),
+hinders the learning process.
 
 """
 
