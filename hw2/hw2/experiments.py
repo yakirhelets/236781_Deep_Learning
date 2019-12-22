@@ -24,7 +24,7 @@ MODEL_TYPES = dict(cnn=cnn.ConvClassifier,
 
 def run_experiment(run_name, out_dir='./results', seed=None, device=None,
                    # Training params
-                   bs_train=128, bs_test=None, batches=100, epochs=100,
+                   bs_train=256, bs_test=None, batches=100, epochs=100,
                    early_stopping=3, checkpoints=None, lr=1e-3, reg=1e-3,
                    # Model params
                    filters_per_layer=[64], layers_per_block=2, pool_every=2,
@@ -81,8 +81,8 @@ def run_experiment(run_name, out_dir='./results', seed=None, device=None,
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     # SECOND PART
-    dl_train = torch.utils.data.DataLoader(ds_train, bs_train, shuffle=True)
-    dl_test = torch.utils.data.DataLoader(ds_test, bs_test, shuffle=False)
+    dl_train = DataLoader(ds_train, bs_train, shuffle=True)
+    dl_test = DataLoader(ds_test, bs_test, shuffle=False)
 
     trainer = training.TorchTrainer(model, loss_fn, optimizer, device)
     fit_res = trainer.fit(dl_train, dl_test, epochs, checkpoints, early_stopping, **kw)
