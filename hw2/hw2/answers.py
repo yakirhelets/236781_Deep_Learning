@@ -62,14 +62,9 @@ hinders the learning process.
 
 part2_q2 = r"""
 **Your answer:**
-
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+Cross-Entropy Loss is is known for "punishing" over wrong predictions. Thus, wrong prediction have larger effect over the loss than
+correct predictions. In a case which there are wrong predictions over one class, and overall correct predictions
+in the rest of the classes, it is possible for the test loss to increase while the accuracy also increases. 
 
 """
 # ==============
