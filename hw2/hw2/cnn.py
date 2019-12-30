@@ -282,7 +282,7 @@ class YourCodeNet(ConvClassifier):
     def _make_classifier(self):
         layers = []
 
-        layers.append(nn.Linear(800, 100))
+        layers.append(nn.Linear(3200, 100))
         layers.append(nn.ReLU())
         layers.append(nn.Linear(100, 200))
         layers.append(nn.ReLU())
