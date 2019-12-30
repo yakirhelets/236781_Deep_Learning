@@ -23,7 +23,21 @@ def char_maps(text: str):
     #  It's best if you also sort the chars before assigning indices, so that
     #  they're in lexical order.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    char_to_idx = {}
+    idx_to_char = {}
+
+    chars = []
+    # Get all unique chars
+    [chars.append(c) for c in text if c not in chars]
+    chars.sort()
+
+    dict_counter = 0
+    # Build the dictionaries
+    for c in chars:
+        char_to_idx[c] = dict_counter
+        idx_to_char[dict_counter] = c
+        dict_counter += 1
+
     # ========================
     return char_to_idx, idx_to_char
 
@@ -39,7 +53,16 @@ def remove_chars(text: str, chars_to_remove):
     """
     # TODO: Implement according to the docstring.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    text_clean = ""
+    n_removed = 0
+
+    # Go over the text and add to text_clean what's not in chars_to_remove
+    for c in text:
+        if c not in chars_to_remove:
+            text_clean += c
+        else:
+            n_removed += 1
+
     # ========================
     return text_clean, n_removed
 
@@ -59,7 +82,16 @@ def chars_to_onehot(text: str, char_to_idx: dict) -> Tensor:
     """
     # TODO: Implement the embedding.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    N = len(text)
+    D = len(char_to_idx)
+
+    result = torch.zeros([N, D], dtype=torch.int8)
+
+    char_count = 0
+    for c in text:
+        result[char_count, char_to_idx[c]] = 1
+        char_count += 1
+
     # ========================
     return result
 
@@ -76,7 +108,16 @@ def onehot_to_chars(embedded_text: Tensor, idx_to_char: dict) -> str:
     """
     # TODO: Implement the reverse-embedding.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    N = embedded_text.shape[0]
+    D = embedded_text.shape[1]
+    result = ""
+
+    for i in range(N):
+        for j in range(D):
+            if embedded_text[i, j] == 1:
+                result += (idx_to_char[j])
+                break
+
     # ========================
     return result
 
