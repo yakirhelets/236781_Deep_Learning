@@ -19,7 +19,12 @@ class EncoderCNN(nn.Module):
         #  use pooling or only strides, use any activation functions,
         #  use BN or Dropout, etc.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        modules.append(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1))
+        modules.append(nn.ReLU())
+
+        for _ in range(2):
+            modules.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
+            modules.append(nn.ReLU())
         # ========================
         self.cnn = nn.Sequential(*modules)
 
@@ -42,7 +47,13 @@ class DecoderCNN(nn.Module):
         #  output should be a batch of images, with same dimensions as the
         #  inputs to the Encoder were.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        
+        modules.append(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1))
+        modules.append(nn.ReLU())
+
+        for _ in range(2):
+            modules.append(nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1))
+            modules.append(nn.ReLU())
         # ========================
         self.cnn = nn.Sequential(*modules)
 
