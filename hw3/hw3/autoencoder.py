@@ -81,14 +81,15 @@ class VAE(nn.Module):
 
         # TODO: Add more layers as needed for encode() and decode().
         # ====== YOUR CODE: ======
-        print(self.features_shape)
-        # torch.randn()
         self.w = torch.randn(self.features_shape)
         self.b = torch.randn((1, z_dim))
 
-        self.fc21 = nn.Linear(n_features, z_dim)
-        self.fc22 = nn.Linear(n_features, z_dim, True)
+        self.features_to_mu = nn.Linear(n_features, z_dim)
+        self.features_to_sigma = nn.Linear(n_features, z_dim)
 
+        self.z_to_h = nn.Linear(z_dim, n_features)
+
+        self.features_shape = None
         # ========================
 
     def _check_features(self, in_size):
@@ -111,10 +112,11 @@ class VAE(nn.Module):
         # ====== YOUR CODE: ======
         # Obtain mu and log_sigma2
         features = self.features_encoder(x)
+        self.features_shape = features.shape
 
-        mu = (self.fc21(features.view(-1))).unsqueeze(0)
+        mu = (self.features_to_mu(features.view(-1))).unsqueeze(0)
 
-        log_sigma2 = (self.fc22(features.view(-1))).unsqueeze(0)
+        log_sigma2 = (self.features_to_sigma(features.view(-1))).unsqueeze(0)
         log_sigma2 = log_sigma2.pow(2)
 
         # reparametrization trick
@@ -130,8 +132,11 @@ class VAE(nn.Module):
         #  1. Convert latent z to features h with a linear layer.
         #  2. Apply features decoder.
         # ====== YOUR CODE: ======
-        # nn.Linear()
-        raise NotImplementedError()
+        prepared_z = z.squeeze()
+        reconstructed_features = self.z_to_h(prepared_z)
+        reconstructed_features = reconstructed_features.reshape(self.features_shape)
+
+        x_rec = self.features_decoder(reconstructed_features)
         # ========================
 
         # Scale to [-1, 1] (same dynamic range as original images).
