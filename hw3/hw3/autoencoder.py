@@ -47,7 +47,7 @@ class DecoderCNN(nn.Module):
         #  output should be a batch of images, with same dimensions as the
         #  inputs to the Encoder were.
         # ====== YOUR CODE: ======
-        
+
         modules.append(nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1))
         modules.append(nn.ReLU())
 
@@ -81,6 +81,13 @@ class VAE(nn.Module):
 
         # TODO: Add more layers as needed for encode() and decode().
         # ====== YOUR CODE: ======
+        print(self.features_shape)
+        # torch.randn()
+        self.w = torch.randn(self.features_shape)
+        self.b = torch.randn((1, z_dim))
+
+        self.fc21 = nn.Linear(n_features, z_dim)
+        self.fc22 = nn.Linear(n_features, z_dim, True)
 
         # ========================
 
@@ -104,22 +111,15 @@ class VAE(nn.Module):
         # ====== YOUR CODE: ======
         # Obtain mu and log_sigma2
         features = self.features_encoder(x)
-        # print(x.shape)
-        # print(features.shape)
-        var, mean = torch.var_mean(features)
-        print(var, mean)
-        # mean = features.mean()
-        # sigma = features.variance()
 
-        # reparametrization trick -> z = mu_alpha(x) + u * simga_alpha(X)^2
-        noise = torch.randn((1, self.z_dim))
-        mu = mean * noise
-        log_sigma2 = (var.log() ** 2) * noise
-        z = mu + log_sigma2
-        print(mu.shape)
-        # print(noise.shape)
-        print(log_sigma2.shape)
-        print(z.shape)
+        mu = (self.fc21(features.view(-1))).unsqueeze(0)
+
+        log_sigma2 = (self.fc22(features.view(-1))).unsqueeze(0)
+        log_sigma2 = log_sigma2.pow(2)
+
+        # reparametrization trick
+        eps = torch.randn_like(log_sigma2)
+        z = mu + eps*log_sigma2
         # ========================
 
         return z, mu, log_sigma2
@@ -130,6 +130,7 @@ class VAE(nn.Module):
         #  1. Convert latent z to features h with a linear layer.
         #  2. Apply features decoder.
         # ====== YOUR CODE: ======
+        # nn.Linear()
         raise NotImplementedError()
         # ========================
 
