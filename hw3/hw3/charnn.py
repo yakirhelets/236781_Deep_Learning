@@ -147,7 +147,31 @@ def chars_to_labelled_samples(text: str, char_to_idx: dict, seq_len: int,
     #  3. Create the labels tensor in a similar way and convert to indices.
     #  Note that no explicit loops are required to implement this function.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    N = int(len(text) / seq_len)
+    S = seq_len
+
+    # 1
+    embedded_text = chars_to_onehot(text, char_to_idx)
+    V = embedded_text.shape[1]
+    samples = torch.zeros([N, S, V], dtype=torch.int8, device=device)
+    labels = torch.zeros([N, S], dtype=torch.int8, device=device)
+
+    # TODO add ignoring the last char
+    #2
+    for i in range(N):
+        samples[i,:,:] = embedded_text[i*S:(i*S)+S, :]
+
+    #3
+    for i in range(N):
+        # get substring from i to i+1 to S+1 of text
+        sub = text[(i*S)+1:((i*S)+1+S)]
+        sub_indices = []
+        for j in range(len(sub)):
+            sub_indices.append(char_to_idx[sub[j]])
+        sub_tensor = torch.as_tensor(sub_indices, dtype=torch.int8, device=device)
+        # append to labels as row tensor
+        labels[i, :] = sub_tensor
+
     # ========================
     return samples, labels
 
