@@ -187,7 +187,13 @@ def hot_softmax(y, dim=0, temperature=1.0):
     """
     # TODO: Implement based on the above.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+
+    e_y_t = torch.exp(y / temperature)
+    sigma_e_y_t = 0
+    for i in y:
+        sigma_e_y_t += torch.exp(i / temperature)
+    result = e_y_t / sigma_e_y_t
+
     # ========================
     return result
 
@@ -223,7 +229,26 @@ def generate_from_model(model, start_sequence, n_chars, char_maps, T):
     #  necessary for this. Best to disable tracking for speed.
     #  See torch.no_grad().
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+
+    window_size = len(start_sequence)
+    h = None
+    seq = out_text[-window_size:]
+
+    for c in range(n_chars):
+        x = chars_to_onehot(seq, char_to_idx).unsqueeze(dim=0).float()
+        y, h = model(x, h)
+        soft = hot_softmax(torch.squeeze(y)[-1], temperature=T) # Taking the last output char only
+        new_char_index = torch.multinomial(soft, 1) # Sampling one new char
+
+        soft_right_shape = soft.unsqueeze(dim=0)
+        tmp_tensor = torch.zeros_like(soft_right_shape, requires_grad=False)
+        tmp_tensor[0, new_char_index] = 1
+        new_char = onehot_to_chars(tmp_tensor, idx_to_char)
+        out_text += new_char
+        seq = out_text[-window_size:]
+
+    out_text = out_text[6:]
+
     # ========================
 
     return out_text
@@ -278,8 +303,8 @@ class MultilayerGRU(nn.Module):
         """
         :param in_dim: Number of input dimensions (at each timestep).
         :param h_dim: Number of hidden state dimensions.
-        :param out_dim: Number of input dimensions (at each timestep).
-        :param n_layers: Number of layer in the model.
+        :param out_dim: Number of output dimensions (at each timestep).
+        :param n_layers: Number of layers in the model.
         :param dropout: Level of dropout to apply between layers. Zero
         disables.
         """
@@ -308,7 +333,55 @@ class MultilayerGRU(nn.Module):
         #      then call self.register_parameter() on them. Also make
         #      sure to initialize them. See functions in torch.nn.init.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+
+        self.dropout = dropout
+
+        # Input layer
+        self.add_module("Layer_0_update_x", nn.Linear(in_dim, h_dim))
+        self.add_module("Layer_0_reset_x", nn.Linear(in_dim, h_dim))
+        self.add_module("Layer_0_hidden_x", nn.Linear(in_dim, h_dim))
+
+        self.add_module("Layer_0_update_h", nn.Linear(h_dim, h_dim, bias=False))
+        self.add_module("Layer_0_reset_h", nn.Linear(h_dim, h_dim, bias=False))
+        self.add_module("Layer_0_hidden_h", nn.Linear(h_dim, h_dim, bias=False))
+
+        # self.add_module("Dropout_0", nn.Dropout(dropout))
+
+        Wxz = nn.Linear(h_dim, h_dim)
+        self.layer_params.append(Wxz)
+        Wxr = nn.Linear(h_dim, h_dim)
+        self.layer_params.append(Wxr)
+        Wxg = nn.Linear(h_dim, h_dim)
+        self.layer_params.append(Wxg)
+
+        Whz = nn.Linear(h_dim, h_dim, bias=False)
+        self.layer_params.append(Whz)
+        Whr = nn.Linear(h_dim, h_dim, bias=False)
+        self.layer_params.append(Whr)
+        Whg = nn.Linear(h_dim, h_dim, bias=False)
+        self.layer_params.append(Whg)
+
+
+
+        # Middle layers
+        for i in range(1, self.n_layers):
+
+            # Adding params according to the formulas in the notebook, and adding modules accordingly
+
+            self.add_module(f"Layer_{i}_update_x", Wxz)
+            self.add_module(f"Layer_{i}_reset_x", Wxr)
+            self.add_module(f"Layer_{i}_hidden_x", Wxg)
+
+            self.add_module(f"Layer_{i}_update_h", Whz)
+            self.add_module(f"Layer_{i}_reset_h", Whr)
+            self.add_module(f"Layer_{i}_hidden_h", Whg)
+
+            self.add_module(f"Dropout_{i}", nn.Dropout(dropout))
+
+        W_last = nn.Linear(h_dim, out_dim)
+        self.layer_params.append(W_last)
+        self.add_module(f"Last Layer", W_last)
+
         # ========================
 
     def forward(self, input: Tensor, hidden_state: Tensor = None):
@@ -345,6 +418,42 @@ class MultilayerGRU(nn.Module):
         #  Tip: You can use torch.stack() to combine multiple tensors into a
         #  single tensor in a differentiable manner.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+
+        layer_output_params = []
+
+        for i in range(seq_len):
+
+            x = layer_input[:, i, :]
+            h_t_minus_1 = layer_states[0]
+
+            z = nn.Sigmoid()(nn.Linear(self.in_dim, self.h_dim)(x) + self.layer_params[3](h_t_minus_1))
+            r = nn.Sigmoid()(nn.Linear(self.in_dim, self.h_dim)(x) + self.layer_params[4](h_t_minus_1))
+            g = nn.Tanh()(nn.Linear(self.in_dim, self.h_dim)(x) + self.layer_params[5](r * h_t_minus_1))
+            h_t = z * h_t_minus_1 + (1 - z) * g
+
+            layer_states[0] = nn.Dropout(self.dropout)(h_t)  # adding dropout layer
+
+            # x = layer_input[:,i+1,:]
+            x = h_t
+
+            for j in range(1, self.n_layers):
+
+                h_t_minus_1 = layer_states[j]
+
+                z = nn.Sigmoid()(self.layer_params[0](x) + self.layer_params[3](h_t_minus_1))
+                r = nn.Sigmoid()(self.layer_params[1](x) + self.layer_params[4](h_t_minus_1))
+                g = nn.Tanh()(self.layer_params[2](x) + self.layer_params[5](r*h_t_minus_1))
+                h_t = z * h_t_minus_1 + (1 - z) * g
+                x = h_t
+
+                layer_states[j] = nn.Dropout(self.dropout)(h_t) # adding dropout layer
+
+            layer_output_params.append(self.layer_params[6](h_t))
+
+        # Concatinating along the second dimension, dim=1
+        layer_output = torch.stack(layer_output_params, dim=1)
+        hidden_state = torch.stack(layer_states, dim=1)
+
         # ========================
         return layer_output, hidden_state
+            
