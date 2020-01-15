@@ -234,21 +234,13 @@ def generate_from_model(model, start_sequence, n_chars, char_maps, T):
     h = None
     seq = out_text[-window_size:]
 
+    x = chars_to_onehot(seq, char_to_idx).unsqueeze(dim=0).float()
+
     for c in range(n_chars):
-        x = chars_to_onehot(seq, char_to_idx).unsqueeze(dim=0).float()
         x = x.to(device=device)
         y, h = model(x, h)
-        # print("y")
-        # print(y)
-        # print("y[0,-1,:]")
-        # print(y[0,-1,:])
         soft = hot_softmax(y[0,-1,:], temperature=T) # Taking the last output char only
         new_char_index = torch.multinomial(soft, 1) # Sampling one new char
-
-        # soft_right_shape = soft.unsqueeze(dim=0)
-        # tmp_tensor = torch.zeros_like(soft_right_shape, requires_grad=False)
-        # tmp_tensor[0, new_char_index] = 1
-        # new_char = onehot_to_chars(tmp_tensor, idx_to_char)
 
         new_char = idx_to_char[new_char_index.item()]
 
@@ -343,49 +335,58 @@ class MultilayerGRU(nn.Module):
         self.dropout = dropout
 
         # Input layer
-        self.add_module("Layer_0_update_x", nn.Linear(in_dim, h_dim))
-        self.add_module("Layer_0_reset_x", nn.Linear(in_dim, h_dim))
-        self.add_module("Layer_0_hidden_x", nn.Linear(in_dim, h_dim))
-
-        self.add_module("Layer_0_update_h", nn.Linear(h_dim, h_dim, bias=False))
-        self.add_module("Layer_0_reset_h", nn.Linear(h_dim, h_dim, bias=False))
-        self.add_module("Layer_0_hidden_h", nn.Linear(h_dim, h_dim, bias=False))
+        # self.add_module("Layer_0_update_x", nn.Linear(in_dim, h_dim))
+        # self.add_module("Layer_0_reset_x", nn.Linear(in_dim, h_dim))
+        # self.add_module("Layer_0_hidden_x", nn.Linear(in_dim, h_dim))
+        #
+        # self.add_module("Layer_0_update_h", nn.Linear(h_dim, h_dim, bias=False))
+        # self.add_module("Layer_0_reset_h", nn.Linear(h_dim, h_dim, bias=False))
+        # self.add_module("Layer_0_hidden_h", nn.Linear(h_dim, h_dim, bias=False))
 
         # self.add_module("Dropout_0", nn.Dropout(dropout))
 
-        Wxz = nn.Linear(h_dim, h_dim)
-        self.layer_params.append(Wxz)
-        Wxr = nn.Linear(h_dim, h_dim)
-        self.layer_params.append(Wxr)
-        Wxg = nn.Linear(h_dim, h_dim)
-        self.layer_params.append(Wxg)
-
-        Whz = nn.Linear(h_dim, h_dim, bias=False)
-        self.layer_params.append(Whz)
-        Whr = nn.Linear(h_dim, h_dim, bias=False)
-        self.layer_params.append(Whr)
-        Whg = nn.Linear(h_dim, h_dim, bias=False)
-        self.layer_params.append(Whg)
-
-
-
         # Middle layers
-        for i in range(1, self.n_layers):
+        for i in range(self.n_layers):
+
+            input_dimension = h_dim
+            output_dimension = h_dim
+
+            # The input layer
+            if i == 0:
+                input_dimension = in_dim
 
             # Adding params according to the formulas in the notebook, and adding modules accordingly
 
+            Wxz = nn.Linear(input_dimension, output_dimension)
+            self.layer_params.append(Wxz)
             self.add_module(f"Layer_{i}_update_x", Wxz)
+
+            Wxr = nn.Linear(input_dimension, output_dimension)
+            self.layer_params.append(Wxr)
             self.add_module(f"Layer_{i}_reset_x", Wxr)
+
+            Wxg = nn.Linear(input_dimension, output_dimension)
+            self.layer_params.append(Wxg)
             self.add_module(f"Layer_{i}_hidden_x", Wxg)
 
+            Whz = nn.Linear(h_dim, output_dimension, bias=False)
+            self.layer_params.append(Whz)
             self.add_module(f"Layer_{i}_update_h", Whz)
+
+            Whr = nn.Linear(h_dim, output_dimension, bias=False)
+            self.layer_params.append(Whr)
             self.add_module(f"Layer_{i}_reset_h", Whr)
+
+            Whg = nn.Linear(h_dim, output_dimension, bias=False)
+            self.layer_params.append(Whg)
             self.add_module(f"Layer_{i}_hidden_h", Whg)
 
-            self.add_module(f"Dropout_{i}", nn.Dropout(dropout))
+            if i != 0:
+                self.add_module(f"Dropout_{i}", nn.Dropout(dropout))
 
         W_last = nn.Linear(h_dim, out_dim)
-        self.layer_params.append(W_last)
+        self.lastLayer = W_last
+        # self.layer_params.append(W_last)
         self.add_module(f"Last Layer", W_last)
 
         # ========================
@@ -430,33 +431,23 @@ class MultilayerGRU(nn.Module):
         for i in range(seq_len):
 
             x = layer_input[:, i, :]
-            h_t_minus_1 = layer_states[0]
 
-            z = nn.Sigmoid()(nn.Linear(self.in_dim, self.h_dim)(x) + self.layer_params[3](h_t_minus_1))
-            r = nn.Sigmoid()(nn.Linear(self.in_dim, self.h_dim)(x) + self.layer_params[4](h_t_minus_1))
-            g = nn.Tanh()(nn.Linear(self.in_dim, self.h_dim)(x) + self.layer_params[5](r * h_t_minus_1))
-            h_t = z * h_t_minus_1 + (1 - z) * g
-
-            layer_states[0] = nn.Dropout(self.dropout)(h_t)  # adding dropout layer
-
-            # x = layer_input[:,i+1,:]
-            x = h_t
-
-            for j in range(1, self.n_layers):
+            for j in range(self.n_layers):
 
                 h_t_minus_1 = layer_states[j]
 
-                z = nn.Sigmoid()(self.layer_params[0](x) + self.layer_params[3](h_t_minus_1))
-                r = nn.Sigmoid()(self.layer_params[1](x) + self.layer_params[4](h_t_minus_1))
-                g = nn.Tanh()(self.layer_params[2](x) + self.layer_params[5](r*h_t_minus_1))
+                z = nn.Sigmoid()(self.layer_params[j*6+0](x) + self.layer_params[j*6+3](h_t_minus_1))
+                r = nn.Sigmoid()(self.layer_params[j*6+1](x) + self.layer_params[j*6+4](h_t_minus_1))
+                g = nn.Tanh()(self.layer_params[j*6+2](x) + self.layer_params[j*6+5](r*h_t_minus_1))
                 h_t = z * h_t_minus_1 + (1 - z) * g
                 x = h_t
 
-                layer_states[j] = nn.Dropout(self.dropout)(h_t) # adding dropout layer
+                if j != 0:
+                    layer_states[j] = nn.Dropout(self.dropout)(h_t) # adding a dropout layer
 
-            layer_output_params.append(self.layer_params[6](h_t))
+            layer_output_params.append(self.lastLayer(h_t))
 
-        # Concatinating along the second dimension, dim=1
+        # Concatenating along the second dimension, dim=1
         layer_output = torch.stack(layer_output_params, dim=1)
         hidden_state = torch.stack(layer_states, dim=1)
 

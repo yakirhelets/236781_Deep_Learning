@@ -64,26 +64,40 @@ or not (forgot). This enabled the modeling of sequence with much greater length 
 part1_q3 = r"""
 **Your answer:**
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+Unlike previous tasks that we dealt with, in which the different batches did not have a specific order
+to them, here the batches do have a specific order: we are analyzing text bits of a larger corpus, where
+the learning order is important: we would like to learn the text in the order it appears in the corpus,
+because eventually we would like to generate new characters and words. If we shuffle the order of batches,
+we will 'confuse' the model to learn unrelated and unordered bits of text, which in turn will generate
+new text in an unrelated and unordered manner, which is not what we desire.
 
 """
 
 part1_q4 = r"""
 **Your answer:**
 
+We will answer all 3 sub-questions together, referring to temperature as 'temp.' or 'T':
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+The temp. hyperparameter of networks is used in order to control the randomness of predictions by scaling
+the logits before applying softmax. It increases the sensititvity to low probability candidates.
+For $T = 1$ which is normally the default value, no scaling is being done and we get the value as is.
+
+Using T that is lower than 1, for instance $T = 0.5$, the model computes the softmax on the scaled logits,
+i.e in this case $logits/0.5$, which increases the logits values.
+Next, performing softmax on larger values makes the LSTM more confident but more conservative in its samples.
+'More confident' means less input is needed to activate the output layer, and 'more conservative' means
+it is less likely to sample form unlikely candidates.
+
+On the other hand, using T that is higher than 1, for instance $T = 1.5$, we get a softer probability
+distribution over the classes, which in turn makes the RNN more diverse and more error-prone, meaning it
+is more likely to pick lower probability candidates and makes more mistakes.
+
+Lastly, the softmax function normalizes the candidates at each iteration by ensuring the network outputs
+are all between 0 and 1.
+
+We would like to be more confident in order to be less mistaken (even if it means we are more conservative),
+because what matters most to us is the accuracy of the results, and therefore as explained earlier,
+we are going to use temp. values that are lower than 1 rather than higher than 1
 
 """
 # ==============
