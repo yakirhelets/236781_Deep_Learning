@@ -86,7 +86,39 @@ class Trainer(abc.ABC):
             #  - Implement early stopping. This is a very useful and
             #    simple regularization technique that is highly recommended.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            # Train
+            epoch_result = self.train_epoch(dl_train, **kw)
+
+            curr_accuracy = epoch_result[1]
+            train_acc.append(curr_accuracy)
+
+            curr_loss = torch.stack(epoch_result[0]).sum().item() / len(epoch_result[0])
+            train_loss.append(curr_loss)
+
+            # Test
+            test_result = self.test_epoch(dl_test, **kw)
+
+            curr_test_accuracy = test_result[1]
+            test_acc.append(curr_test_accuracy)
+
+            curr_test_loss = torch.stack(test_result[0]).sum().item() / len(test_result[0])
+            test_loss.append(curr_test_loss)
+
+            # Early stopping
+            if epoch > 1 and test_loss[len(test_loss) - 1] < curr_test_loss:
+                epochs_without_improvement += 1
+            else:
+                epochs_without_improvement = 0
+
+            if best_acc == None or best_acc < curr_test_accuracy:
+                best_acc = curr_test_accuracy
+
+            if early_stopping != None and early_stopping <= epochs_without_improvement:
+                break
+
+            # Checkpoints
+            save_checkpoint = True
+
             # ========================
 
             # Save model checkpoint if requested
@@ -215,7 +247,7 @@ class RNNTrainer(Trainer):
     def test_epoch(self, dl_test: DataLoader, **kw):
         # TODO: Implement modifications to the base method, if needed.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.hidden = None
         # ========================
         return super().test_epoch(dl_test, **kw)
 
@@ -238,7 +270,6 @@ class RNNTrainer(Trainer):
         loss = self.loss_fn(y_pred_fixed, y)
 
         # Prevent gradient vanishing or exploding
-        # self.hidden.detach_()
         self.hidden.detach_()
         self.hidden.requires_grad = False
 
@@ -268,10 +299,20 @@ class RNNTrainer(Trainer):
             #  - Loss calculation
             #  - Calculate number of correct predictions
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            y_pred, self.hidden = self.model(x, self.hidden)
+            y_pred_fixed = torch.transpose(y_pred, 1, 2)
+            loss = self.loss_fn(y_pred_fixed, y)
+
+            # Prevent gradient vanishing or exploding
+            self.hidden.detach_()
+            self.hidden.requires_grad = False
+
+            num_correct = 0
+            for i in range(y_pred_fixed.shape[2]):
+                num_correct = (num_correct + 1) if (torch.argmax(y_pred_fixed[0, :, i]) == y[0, i]) else num_correct
             # ========================
 
-        return BatchResult(loss.item(), num_correct.item() / seq_len)
+        return BatchResult(loss.item(), num_correct / seq_len)
 
 
 class VAETrainer(Trainer):
