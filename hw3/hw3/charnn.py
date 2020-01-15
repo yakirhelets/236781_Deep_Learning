@@ -188,11 +188,14 @@ def hot_softmax(y, dim=0, temperature=1.0):
     # TODO: Implement based on the above.
     # ====== YOUR CODE: ======
 
-    e_y_t = torch.exp(y / temperature)
-    sigma_e_y_t = 0
-    for i in y:
-        sigma_e_y_t += torch.exp(i / temperature)
-    result = e_y_t / sigma_e_y_t
+    # e_y_t = torch.exp(y / temperature)
+    # sigma_e_y_t = 0
+    # for i in y:
+    #     print(i)
+    #     sigma_e_y_t += torch.exp(i / temperature)
+    # result = e_y_t / sigma_e_y_t
+
+    result = torch.softmax(y / temperature, dim)
 
     # ========================
     return result
@@ -244,10 +247,12 @@ def generate_from_model(model, start_sequence, n_chars, char_maps, T):
 
         new_char = idx_to_char[new_char_index.item()]
 
-        out_text += new_char
-        seq = out_text[-window_size:]
+        # Selecting the last character that was generated (new char) and proceeding with it as x
+        x = chars_to_onehot(new_char, char_to_idx).unsqueeze(dim=0).float()
 
-    out_text = out_text[6:]
+        out_text += new_char
+
+    out_text = out_text[:n_chars]
 
     # ========================
 
