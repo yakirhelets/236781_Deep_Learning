@@ -208,7 +208,7 @@ class RNNTrainer(Trainer):
     def train_epoch(self, dl_train: DataLoader, **kw):
         # TODO: Implement modifications to the base method, if needed.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.hidden = None
         # ========================
         return super().train_epoch(dl_train, **kw)
 
@@ -233,12 +233,27 @@ class RNNTrainer(Trainer):
         #  - Update params
         #  - Calculate number of correct char predictions
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        y_pred, self.hidden = self.model(x, self.hidden)
+        y_pred_fixed = torch.transpose(y_pred,1,2)
+        loss = self.loss_fn(y_pred_fixed, y)
+
+        # Prevent gradient vanishing or exploding
+        # self.hidden.detach_()
+        self.hidden.detach_()
+        self.hidden.requires_grad = False
+
+        self.optimizer.zero_grad()
+        loss.backward(retain_graph=True)
+        self.optimizer.step()
+
+        num_correct = 0
+        for i in range(y_pred_fixed.shape[2]):
+            num_correct = (num_correct + 1) if (torch.argmax(y_pred_fixed[0,:,i]) == y[0,i]) else num_correct
         # ========================
 
         # Note: scaling num_correct by seq_len because each sample has seq_len
         # different predictions.
-        return BatchResult(loss.item(), num_correct.item() / seq_len)
+        return BatchResult(loss.item(), num_correct / seq_len)
 
     def test_batch(self, batch) -> BatchResult:
         x, y = batch

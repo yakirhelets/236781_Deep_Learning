@@ -34,26 +34,30 @@ def part1_generation_params():
 part1_q1 = r"""
 **Your answer:**
 
+We split the corpus into sequences instead of training on the entire text because texts in their
+nature consist of words which are short character sequences, and therefore in real world (also done
+by humans) in order to be able to predict the next character or few characters we want to train by looking
+at a small text window rather than the entire corpus in whole. Note that a small text window
+could also be of size 1, which means we train on one character in each iteration.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+Additionally, we want to conclude relations between characters and between words and characters,
+in order to predict the next most probable character, which will be harder to do if we look at the
+entire corpus dataset as a whole.
 
 """
 
 part1_q2 = r"""
 **Your answer:**
 
+The generated text clearly shows memory longer than the sequence length because the network was added
+a memory component, which can remember inputs and then recall those inputs at later time stamps.
+It looks also at states prior to the last one and not just the last one, hence preserving "memory"
+which can be longer than the sequence length.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+Explanation: much like LSTM's, the GRU's have a memory cell, and they solved the vanishing gradients
+problem by introducing a new memory gate, that allowed hidden state to either pass through time (remembered)
+or not (forgot). This enabled the modeling of sequence with much greater length than before.
+
 
 """
 

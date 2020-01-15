@@ -236,14 +236,22 @@ def generate_from_model(model, start_sequence, n_chars, char_maps, T):
 
     for c in range(n_chars):
         x = chars_to_onehot(seq, char_to_idx).unsqueeze(dim=0).float()
+        x = x.to(device=device)
         y, h = model(x, h)
-        soft = hot_softmax(torch.squeeze(y)[-1], temperature=T) # Taking the last output char only
+        # print("y")
+        # print(y)
+        # print("y[0,-1,:]")
+        # print(y[0,-1,:])
+        soft = hot_softmax(y[0,-1,:], temperature=T) # Taking the last output char only
         new_char_index = torch.multinomial(soft, 1) # Sampling one new char
 
-        soft_right_shape = soft.unsqueeze(dim=0)
-        tmp_tensor = torch.zeros_like(soft_right_shape, requires_grad=False)
-        tmp_tensor[0, new_char_index] = 1
-        new_char = onehot_to_chars(tmp_tensor, idx_to_char)
+        # soft_right_shape = soft.unsqueeze(dim=0)
+        # tmp_tensor = torch.zeros_like(soft_right_shape, requires_grad=False)
+        # tmp_tensor[0, new_char_index] = 1
+        # new_char = onehot_to_chars(tmp_tensor, idx_to_char)
+
+        new_char = idx_to_char[new_char_index.item()]
+
         out_text += new_char
         seq = out_text[-window_size:]
 
@@ -280,8 +288,6 @@ class SequenceBatchSampler(torch.utils.data.Sampler):
         #  you can drop it.
         idx = None  # idx should be a 1-d list of indices.
         # ====== YOUR CODE: ======
-        print(len(self.dataset))
-        print(self.batch_size)
         idx = []
         for i in range(int(len(self.dataset)/self.batch_size)):
             for j in range(self.batch_size):
