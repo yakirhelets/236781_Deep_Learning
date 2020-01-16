@@ -188,26 +188,38 @@ def part3_gan_hyperparams():
 part3_q1 = r"""
 **Your answer:**
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+During training, when sampling from the GAN, while optimizing the discriminator we are using real and fake input.
+Both the real input and the fake input will create a loss, however we would like to maintain gradients in the
+discriminator according to the real data and according to it **only**. The reason is that we want to improve our
+discriminator by 'telling it' which is real data so it will know according to which data to perform the learning process.
+The fake data is used only for testing the performance so far, and we do not want to update the discriminator according to it.
+ 
+And so we maintain gradients according to the real data only. And this is the reason why we detach the fake input from
+the generator while we update the discriminator, and this way the generator won't see the other gradients. This is the case
+when we are discarding gradients. And so because of the detachment process no gradients will be created in the generator.
 
 """
+
 
 part3_q2 = r"""
 **Your answer:**
 
+1) We would prefer not to stop training solely based on the fact that the generator loss is below some threshold.
+The reason for that is that our eventual goal is for the generator to be good enough so that the discriminator
+would not be able to differentiate between a real and a fake image. And so if we decide to halt according to the
+generator's performance solely, we might still get a discriminator that in fact **can** perform the differentiation
+and so we stopped before we had to.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+In general it takes some time for GANs to train, and it might take some time for the losses and the generated images to
+show improvement and progress, and the early stopping according to the generator's loss alone is thus less recommended.
+
+2) If the generator's loss decreases it generally means that the generator is improving meaning that it is able to
+produce better more real-looking images. If the discriminator's loss remains at a constant value, it generally means
+that the discriminator's performance is neither improving nor getting worse, and that its ability to differentiate
+between real and fake images remained the same. It might mean that the hyperparameters of the discriminator lead it
+to 'get stuck' in a local minimum of a convex function, thus is is neither improving nor its performance is getting
+worse. And the way to solve it other than to recheck the implementation is to tune again the hyperparameters.
+It might also mean that there is a randomness component to its discrimination process.
 
 """
 

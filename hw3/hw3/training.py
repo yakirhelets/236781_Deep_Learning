@@ -87,12 +87,16 @@ class Trainer(abc.ABC):
             #    simple regularization technique that is highly recommended.
             # ====== YOUR CODE: ======
             # Train
-            epoch_result = self.train_epoch(dl_train, **kw)
+            train_result = self.train_epoch(dl_train, **kw)
 
-            curr_accuracy = epoch_result[1]
+            curr_accuracy = train_result[1]
             train_acc.append(curr_accuracy)
 
-            curr_loss = torch.stack(epoch_result[0]).sum().item() / len(epoch_result[0])
+            # epoch_res_0_tensor = torch.tensor(epoch_result[0])
+            # print(epoch_res_0_tensor)
+
+            curr_loss = torch.tensor(train_result[0]).sum().item() / len(train_result[0])
+            # curr_loss = torch.stack(epoch_result[0]).sum().item() / len(epoch_result[0])
             train_loss.append(curr_loss)
 
             # Test
@@ -101,7 +105,8 @@ class Trainer(abc.ABC):
             curr_test_accuracy = test_result[1]
             test_acc.append(curr_test_accuracy)
 
-            curr_test_loss = torch.stack(test_result[0]).sum().item() / len(test_result[0])
+            curr_test_loss = torch.tensor(test_result[0]).sum().item() / len(test_result[0])
+            # curr_test_loss = torch.stack(test_result[0]).sum().item() / len(test_result[0])
             test_loss.append(curr_test_loss)
 
             # Early stopping
