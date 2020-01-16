@@ -17,13 +17,13 @@ def part1_rnn_hyperparams():
     # TODO: Set the hyperparameters to train the model.
     # ====== YOUR CODE: ======
     hypers['batch_size'] = 128
-    hypers['seq_len'] = 5
-    hypers['h_dim'] = 32
+    hypers['seq_len'] = 4
+    hypers['h_dim'] = 64
     hypers['n_layers'] = 3
-    hypers['dropout'] = 0
-    hypers['learn_rate'] = 0.001
-    hypers['lr_sched_factor'] = 0.001
-    hypers['lr_sched_patience'] = 0.001
+    hypers['dropout'] = 0.4
+    hypers['learn_rate'] = 0.0001
+    hypers['lr_sched_factor'] = 0.0001
+    hypers['lr_sched_patience'] = 0.0001
     # ========================
     return hypers
 
@@ -132,26 +132,45 @@ def part2_vae_hyperparams():
 part2_q1 = r"""
 **Your answer:**
 
+The $\sigma^2$ in the VAE model represents the variance in the normal distribution.
+Generally, if $\sigma^2$ will have too big of a value, we will have to take a very large number of samples to find
+out the true expectation. When the variance is so high, using it to learn different models becomes hard.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+In good practices using VAE, we prefer a low-variance gradient estimator based on the reparametrization trick.
+And so in general, in different examples we've seen, high variance tends to be worse and low variance tends to
+be better, so we need to lower the value, but making sure it is not becoming too low.
 
 """
 
 part2_q2 = r"""
 **Your answer:**
 
+1)
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+In the first place, we want encodings that are as close as possible to each other while maintaining being distinct
+from each other. This allows smooth interpolation and the generation of samples.
+The KL divergence loss's purpose is to ensure this, while the divergence value between two probability
+distributions measures how much they are different from each other.
+By minimizing this loss we are optimizing the prob. dist. parameters (among them - $\sigma$) to be as close as it
+can to the target dist.
+
+Regarding the reconstruction loss, it is usually either the MSE or CE loss between the output and the input.
+Its purpose is to penalize the network for creating outputs that are different from the input. 
+
+2)
+
+The KL divergence encourages the encoder to distribute all input encodings in an even manner around the center
+of the latent space. If it clusters them apart into specific regions and away from the center, it will get a penalty.
+
+3)
+
+The benefit of all the input encodings being evenly distributed around the center of the latent space is that unlike
+when the encodings are densely placed randomly near the center of the latent space, where the decoder finds it
+very hard to decode anything meaningful from the space, when the two losses are optimized together we maintain the
+similarity of nearby encodings locally, and globally it is densely packed near the center of the latent space.
+And then when we reach the equilibrium of the two losses, then when randomly generating a sample (sampling a vector from
+the same prior dist.), the decoder can successfully decode it, with no gaps between clusters and a smooth mix
+of features. 
 
 """
 
