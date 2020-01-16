@@ -246,6 +246,8 @@ class RNNTrainer(Trainer):
         # TODO: Implement modifications to the base method, if needed.
         # ====== YOUR CODE: ======
         self.hidden = None
+
+        self.model.to(self.device)
         # ========================
         return super().train_epoch(dl_train, **kw)
 
@@ -270,6 +272,8 @@ class RNNTrainer(Trainer):
         #  - Update params
         #  - Calculate number of correct char predictions
         # ====== YOUR CODE: ======
+        self.model.to(self.device)
+
         y_pred, self.hidden = self.model(x, self.hidden)
         y_pred_fixed = torch.transpose(y_pred,1,2)
         loss = self.loss_fn(y_pred_fixed, y)
@@ -304,6 +308,8 @@ class RNNTrainer(Trainer):
             #  - Loss calculation
             #  - Calculate number of correct predictions
             # ====== YOUR CODE: ======
+            self.model.to(self.device)
+
             y_pred, self.hidden = self.model(x, self.hidden)
             y_pred_fixed = torch.transpose(y_pred, 1, 2)
             loss = self.loss_fn(y_pred_fixed, y)

@@ -3,6 +3,7 @@ from typing import Callable
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch.distributions import Uniform
 
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
@@ -72,7 +73,14 @@ class Generator(nn.Module):
         #  Generate n latent space samples and return their reconstructions.
         #  Don't use a loop.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        N = n
+        Other_dims = self.z_dim
+
+        # create a random tensor
+        rand_tensor = torch.rand((N, Other_dims), device=device, requires_grad=with_grad)
+        # create the samples with forward of self
+        samples = self.forward(rand_tensor)
+
         # ========================
         return samples
 
@@ -111,7 +119,25 @@ def discriminator_loss_fn(y_data, y_generated, data_label=0, label_noise=0.0):
     #  Implement the discriminator loss.
     #  See pytorch's BCEWithLogitsLoss for a numerically stable implementation.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    N = y_data.shape[0]
+    noise_half = label_noise / 2
+    lower_th = -noise_half
+    upper_th = noise_half
+
+    gen_data_labels = torch.FloatTensor(N).uniform_(lower_th, upper_th)
+    real_data_labels = torch.FloatTensor(N).uniform_(lower_th, upper_th)
+
+    # We are guaranteed that data_label == 0 or 1 due to the assert
+    if data_label == 0:
+        gen_data_labels += 1
+    elif data_label == 1:
+        real_data_labels += 1
+
+    criterion = torch.nn.BCEWithLogitsLoss()
+
+    loss_data = criterion(y_data, real_data_labels)
+    loss_generated = criterion(y_generated, gen_data_labels)
+
     # ========================
     return loss_data + loss_generated
 
@@ -132,7 +158,13 @@ def generator_loss_fn(y_generated, data_label=0):
     #  Think about what you need to compare the input to, in order to
     #  formulate the loss in terms of Binary Cross Entropy.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    N = y_generated.shape[0]
+
+    gen_data_labels = torch.FloatTensor(N).uniform_(data_label) # All same value
+
+    criterion = nn.BCEWithLogitsLoss()
+
+    loss = criterion(y_generated, gen_data_labels)
     # ========================
     return loss
 
