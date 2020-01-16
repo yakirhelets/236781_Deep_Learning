@@ -3,7 +3,6 @@ from typing import Callable
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.distributions import Uniform
 
 from torch.optim.optimizer import Optimizer
 from torch.utils.data import DataLoader
@@ -22,7 +21,22 @@ class Discriminator(nn.Module):
         #  You can then use either an affine layer or another conv layer to
         #  flatten the features.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.in_channels = in_size[0]
+        self.out_channels = 1024
+
+        modules = []
+
+        modules.append(
+            nn.Conv2d(self.in_channels, self.out_channels, 3, 1))
+        modules.append(nn.ReLU())
+
+        for idx in range(2):
+            modules.append(nn.Conv2d(self.out_channels, self.out_channels, 3, 1))
+            modules.append(nn.ReLU())
+
+        modules.append(nn.Conv2d(self.out_channels, self.out_channels, 3, 1))
+
+        self.model = nn.Sequential(*modules)
         # ========================
 
     def forward(self, x):
@@ -35,7 +49,36 @@ class Discriminator(nn.Module):
         #  No need to apply sigmoid to obtain probability - we'll combine it
         #  with the loss due to improved numerical stability.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        batch_size = x.shape[0]
+        # features = torch.tanh(self.model(x))
+        features = self.model(x)
+        features = features.view(batch_size, -1)
+        print(features.shape)
+
+        num_features = features.shape[1]
+        # fc_hidden = [1]
+        # print(x.shape)
+        # features = torch.tanh(self.model_gan(x))
+
+        # Creating a fc NN for the classification part
+
+        modules = []
+        # M = len(fc_hidden)
+        # mlp = num_features
+        # for idx in range(M):
+        #     modules.append(nn.Linear(num_features, fc_hidden[idx]))
+        #     mlp = fc_hidden[idx]
+        #     # layers.append(nn.Dropout(p=0.1))
+        #
+        # modules.append(nn.Linear(mlp, 1))
+        modules = [nn.Linear(num_features, 1)]
+
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        model_fc = nn.Sequential(*modules).to(device)
+        print(model_fc)
+
+        # print(device)
+        y = model_fc(features)
         # ========================
         return y
 
@@ -56,7 +99,24 @@ class Generator(nn.Module):
         #  section or implement something new.
         #  You can assume a fixed image size.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        self.featuremap_size = featuremap_size
+        self.out_channels = out_channels
+
+        self.channels_list = [1024, 512, 128, 64, self.out_channels]
+
+        modules = []
+
+        modules.append(nn.ConvTranspose2d(self.z_dim, 1024, self.featuremap_size, padding=0, stride=2))
+
+        modules.append(nn.ReLU())
+
+        for idx in range(3):
+            modules.append(nn.ConvTranspose2d(1024, 1024, self.featuremap_size, padding=1, stride=2))
+            modules.append(nn.ReLU())
+
+        modules.append(nn.ConvTranspose2d(1024, self.out_channels, 4, padding=1, stride=2))
+
+        self.model = nn.Sequential(*modules)
         # ========================
 
     def sample(self, n, with_grad=False):
@@ -94,7 +154,10 @@ class Generator(nn.Module):
         #  Don't forget to make sure the output instances have the same
         #  dynamic range as the original (real) images.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        z = z.unsqueeze(-1)
+        z = z.unsqueeze(-1)
+
+        x = self.model(z)
         # ========================
         return x
 
