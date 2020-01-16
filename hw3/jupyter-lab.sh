@@ -18,7 +18,7 @@
 ###
 # Conda parameters
 #
-CONDA_HOME=$HOME/miniconda3
+CONDA_HOME=$HOME/anaconda3
 CONDA_ENV=cs236781-hw
 
 unset XDG_RUNTIME_DIR

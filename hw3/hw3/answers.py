@@ -16,11 +16,11 @@ def part1_rnn_hyperparams():
     )
     # TODO: Set the hyperparameters to train the model.
     # ====== YOUR CODE: ======
-    hypers['batch_size'] = 128
+    hypers['batch_size'] = 64
     hypers['seq_len'] = 4
-    hypers['h_dim'] = 64
+    hypers['h_dim'] = 24
     hypers['n_layers'] = 3
-    hypers['dropout'] = 0.4
+    hypers['dropout'] = 0
     hypers['learn_rate'] = 0.0001
     hypers['lr_sched_factor'] = 0.0001
     hypers['lr_sched_patience'] = 0.0001
@@ -33,7 +33,8 @@ def part1_generation_params():
     temperature = .0001
     # TODO: Tweak the parameters to generate a literary masterpiece.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    start_seq = "Here"
+    temperature = 0.6
     # ========================
     return start_seq, temperature
 
@@ -202,7 +203,16 @@ def part3_gan_hyperparams():
     )
     # TODO: Tweak the hyperparameters to train your GAN.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    hypers['batch_size'] = 128
+    hypers['z_dim'] = 128
+    hypers['data_label'] = 1
+    hypers['label_noise'] = 0.0
+    disc_dict = hypers['discriminator_optimizer']
+    disc_dict['type'] = 'SGD'
+    disc_dict['lr'] = 0.01
+    gen_dict = hypers['generator_optimizer']
+    gen_dict['type'] = 'SGD'
+    gen_dict['lr'] = 0.01
     # ========================
     return hypers
 
@@ -248,13 +258,11 @@ It might also mean that there is a randomness component to its discrimination pr
 part3_q3 = r"""
 **Your answer:**
 
-
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+Unfortunately we did not reach the results that we wanted, however:
+GANs are better in the generative tasks, meaning in generating the images it should perform better, to achieve
+less pixelated and more realistic-like images.
+Additionally, VAE uses the encoding and decoding processes, during which important data is lost (since we are
+compressing the data). This, in turn, might cause the VAE to produce inferior results compared to GAN.
 
 """
 

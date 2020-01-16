@@ -21,22 +21,24 @@ class Discriminator(nn.Module):
         #  You can then use either an affine layer or another conv layer to
         #  flatten the features.
         # ====== YOUR CODE: ======
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
         self.in_channels = in_size[0]
         self.out_channels = 1024
 
         modules = []
 
         modules.append(
-            nn.Conv2d(self.in_channels, self.out_channels, 3, 1))
+            nn.Conv2d(self.in_channels, 64, 3, 1))
         modules.append(nn.ReLU())
 
-        for idx in range(2):
-            modules.append(nn.Conv2d(self.out_channels, self.out_channels, 3, 1))
-            modules.append(nn.ReLU())
+        modules.append(nn.Conv2d(64, 64, 3, 1))
+        modules.append(nn.ReLU())
 
-        modules.append(nn.Conv2d(self.out_channels, self.out_channels, 3, 1))
+        modules.append(nn.Conv2d(64, self.out_channels, 3, 1))
 
         self.model = nn.Sequential(*modules)
+        self.model.to(device)
         # ========================
 
     def forward(self, x):
@@ -99,24 +101,29 @@ class Generator(nn.Module):
         #  section or implement something new.
         #  You can assume a fixed image size.
         # ====== YOUR CODE: ======
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
         self.featuremap_size = featuremap_size
         self.out_channels = out_channels
 
-        self.channels_list = [1024, 512, 128, 64, self.out_channels]
-
         modules = []
-
-        modules.append(nn.ConvTranspose2d(self.z_dim, 1024, self.featuremap_size, padding=0, stride=2))
-
+        modules.append(nn.ConvTranspose2d(self.z_dim, 24, self.featuremap_size, padding=0, stride=2))
         modules.append(nn.ReLU())
 
-        for idx in range(3):
-            modules.append(nn.ConvTranspose2d(1024, 1024, self.featuremap_size, padding=1, stride=2))
-            modules.append(nn.ReLU())
+        modules.append(nn.ConvTranspose2d(24, 64, self.featuremap_size, padding=1, stride=2))
+        modules.append(nn.ReLU())
 
-        modules.append(nn.ConvTranspose2d(1024, self.out_channels, 4, padding=1, stride=2))
+        modules.append(nn.ConvTranspose2d(64, 128, self.featuremap_size, padding=1, stride=2))
+        modules.append(nn.ReLU())
+
+        modules.append(nn.ConvTranspose2d(128, 256, self.featuremap_size, padding=1, stride=2))
+        modules.append(nn.ReLU())
+
+        modules.append(nn.ConvTranspose2d(256, self.out_channels, 4, padding=1, stride=2))
 
         self.model = nn.Sequential(*modules)
+
+        self.model.to(device)
         # ========================
 
     def sample(self, n, with_grad=False):
@@ -133,13 +140,14 @@ class Generator(nn.Module):
         #  Generate n latent space samples and return their reconstructions.
         #  Don't use a loop.
         # ====== YOUR CODE: ======
+
         N = n
         Other_dims = self.z_dim
 
         # create a random tensor
         rand_tensor = torch.rand((N, Other_dims), device=device, requires_grad=with_grad)
         # create the samples with forward of self
-        samples = self.forward(rand_tensor)
+        samples = self.forward(rand_tensor).detach() if with_grad is False else self.forward(rand_tensor)
 
         # ========================
         return samples
@@ -154,6 +162,9 @@ class Generator(nn.Module):
         #  Don't forget to make sure the output instances have the same
         #  dynamic range as the original (real) images.
         # ====== YOUR CODE: ======
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+        z.to(device)
         z = z.unsqueeze(-1)
         z = z.unsqueeze(-1)
 
@@ -247,7 +258,21 @@ def train_batch(dsc_model: Discriminator, gen_model: Generator,
     #  2. Calculate discriminator loss
     #  3. Update discriminator parameters
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    dsc_model.to(device)
+
+    y_pred = dsc_model(x_data)
+
+    num_to_sample = y_pred.shape[0]
+    samples = gen_model.sample(num_to_sample, False)
+    generated = dsc_model(samples)
+
+    dsc_loss = dsc_loss_fn(y_pred, generated)
+
+    dsc_optimizer.zero_grad()
+    dsc_loss.backward(retain_graph=True)
+    dsc_optimizer.step()
     # ========================
 
     # TODO: Generator update
@@ -255,7 +280,21 @@ def train_batch(dsc_model: Discriminator, gen_model: Generator,
     #  2. Calculate generator loss
     #  3. Update generator parameters
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    gen_model.to(device)
+
+    y_pred  = gen_model(x_data)
+
+    num_to_sample = y_pred.shape[0]
+    samples = gen_model.sample(num_to_sample, True)
+    generated = dsc_model(samples)
+
+    gen_loss = gen_loss_fn(generated)
+
+    gen_optimizer.zero_grad()
+    gen_loss.backward(retain_graph=True)
+    gen_optimizer.step()
     # ========================
 
     return dsc_loss.item(), gen_loss.item()
@@ -278,7 +317,14 @@ def save_checkpoint(gen_model, dsc_losses, gen_losses, checkpoint_file):
     #  You should decide what logic to use for deciding when to save.
     #  If you save, set saved to True.
     # ====== YOUR CODE: ======
-    raise NotImplementedError()
+
+    saved_state = dict(gen_model=gen_model.state_dict(),
+                       dsc_losses=dsc_losses,
+                       gen_losses=gen_losses)
+    torch.save(saved_state, checkpoint_file)
+    print(f'*** Saved checkpoint {checkpoint_file} ')
+
+    saved = True
     # ========================
 
     return saved
