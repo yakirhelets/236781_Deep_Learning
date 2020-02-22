@@ -29,13 +29,20 @@ class PolicyNet(nn.Module):
 
         # TODO: Implement a simple neural net to approximate the policy.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        modules = [nn.Conv2d(in_features, 32, kernel_size=3),
+                   nn.ReLU(),
+                   nn.Conv2d(32, 64, kernel_size=3),
+                   nn.ReLU(),
+                   nn.Conv2d(64, out_actions, kernel_size=3),
+                   nn.ReLU()]
+
+        self.pn = nn.Sequential(*modules)
         # ========================
 
     def forward(self, x):
         # TODO: Implement a simple neural net to approximate the policy.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        action_scores = self.pn(x)
         # ========================
         return action_scores
 
@@ -50,7 +57,7 @@ class PolicyNet(nn.Module):
         """
         # TODO: Implement according to docstring.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        net = PolicyNet(env.observation_space.shape[0], env.action_space.n, **kw)
         # ========================
         return net.to(device)
 
