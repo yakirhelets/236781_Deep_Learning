@@ -29,12 +29,12 @@ class PolicyNet(nn.Module):
 
         # TODO: Implement a simple neural net to approximate the policy.
         # ====== YOUR CODE: ======
-        modules = [nn.Conv2d(in_features, 32, kernel_size=3),
+        modules = [nn.Linear(in_features, 32),
                    nn.ReLU(),
-                   nn.Conv2d(32, 64, kernel_size=3),
+                   nn.Linear(32, 64),
                    nn.ReLU(),
-                   nn.Conv2d(64, out_actions, kernel_size=3),
-                   nn.ReLU()]
+                   nn.Linear(64, out_actions),
+                   nn.Softmax()]  # used in order to normalize the out_actions into distributions in the range [0,1] and sum to 1
 
         self.pn = nn.Sequential(*modules)
         # ========================
@@ -94,7 +94,7 @@ class PolicyAgent(object):
         #  Generate the distribution as described above.
         #  Notice that you should use p_net for *inference* only.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        actions_proba = self.p_net.forward(self.curr_state)
         # ========================
 
         return actions_proba
