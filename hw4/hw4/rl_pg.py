@@ -34,7 +34,7 @@ class PolicyNet(nn.Module):
                    nn.Linear(32, 64),
                    nn.ReLU(),
                    nn.Linear(64, out_actions),
-                   nn.Softmax()]  # used in order to normalize the out_actions into distributions in the range [0,1] and sum to 1
+                   nn.Softmax(dim=None)]  # used in order to normalize the out_actions into distributions in the range [0,1] and sum to 1
 
         self.pn = nn.Sequential(*modules)
         # ========================
@@ -94,7 +94,7 @@ class PolicyAgent(object):
         #  Generate the distribution as described above.
         #  Notice that you should use p_net for *inference* only.
         # ====== YOUR CODE: ======
-        actions_proba = self.p_net.forward(self.curr_state)
+        actions_proba = self.p_net(self.curr_state)
         # ========================
 
         return actions_proba
@@ -115,9 +115,14 @@ class PolicyAgent(object):
         #  - Update agent state.
         #  - Generate and return a new experience.
         # ====== YOUR CODE: ======
-
-        raise NotImplementedError()
-
+        # Sampling from the distribution vector
+        action = torch.multinomial(self.current_action_distribution(), 1).item()
+        # Perform the action
+        observation, reward, is_done, info = self.env.step(action)
+        # Update agent state
+        self.curr_state = torch.tensor(observation, device=self.device, dtype=torch.float)
+        # Generate and return a new experience
+        experience = Experience(self.curr_state, action, reward, is_done)
         # ========================
         if is_done:
             self.reset()
