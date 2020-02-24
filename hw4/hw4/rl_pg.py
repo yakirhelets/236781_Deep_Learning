@@ -149,7 +149,13 @@ class PolicyAgent(object):
             #  Create an agent and play the environment for one episode
             #  based on the policy encoded in p_net.
             # ====== YOUR CODE: ======
-            raise NotImplementedError()
+            agent = PolicyAgent(env, p_net, device)
+            is_done = False
+            while not is_done:
+                experience = agent.step()
+                n_steps += 1
+                reward += experience.reward
+                is_done = experience.is_done
             # ========================
         return env, n_steps, reward
 
