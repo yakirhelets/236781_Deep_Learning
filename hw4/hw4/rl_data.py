@@ -39,7 +39,14 @@ class Episode(object):
         #  Try to implement it in O(n) runtime, where n is the number of
         #  states. Hint: change the order.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        for i in range(len(self.experiences)):
+            qval = 0
+            k = 0
+            for j in range(i, len(self.experiences)):
+                qval += self.experiences[j].reward*pow(gamma, k)
+                k += 1
+            qvals.append(qval)
+        qvals[-1] = self.experiences[-1].reward
         # ========================
         return qvals
 
