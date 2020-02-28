@@ -96,16 +96,29 @@ class TrainBatch(object):
 
         #  Extract states, actions and total rewards from episodes.
         for episode in episodes:
-            total_reward += episode.total_reward
-            states += [state for state, action, reward, is_done in episode.experiences]
-            actions += [action for state, action, reward, is_done in episode.experiences]
-            # Calculate the q-values for states in each experience.
-            qvals += episode.calc_qvals(gamma)
+            total_reward.append(episode.total_reward)
 
-        total_reward = torch.tensor(total_reward, dtype=torch.float)
-        states = torch.tensor(states, dtype=torch.float)
-        actions = torch.tensor(actions, dtype=torch.float)
-        qvals = torch.tensor(qvals, dtype=torch.float)
+            states_in_episode = [state.unsqueeze(dim=0) for state, action, reward, is_done in episode.experiences]
+            states_in_episode = torch.cat(states_in_episode, dim=0)
+            states.append(states_in_episode)
+
+            actions.append(torch.tensor([action for state, action, reward, is_done in episode.experiences]))
+            # Calculate the q-values for states in each experience.
+            qvals.append(episode.calc_qvals(gamma))
+
+        total_reward = [torch.tensor(reward, dtype=torch.float).unsqueeze(dim=0) for reward in total_reward]
+        states = torch.cat(states, dim=0)
+
+        total_reward = torch.cat(total_reward, dim=0)
+        # print("total_reward: ", total_reward.shape)
+        # print("states: ", states.shape)
+
+        actions = torch.cat(actions, dim=0)
+        # print("actions: ", actions.shape)
+
+        qvals = [torch.tensor(qval, dtype=torch.float) for qval in qvals]
+        qvals = torch.cat(qvals)
+        # print("qval: ", qvals.shape)
 
         # Construct a TrainBatch instance.
         train_batch = TrainBatch(states, actions, qvals, total_reward)
