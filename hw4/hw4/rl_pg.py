@@ -116,7 +116,7 @@ class PolicyAgent(object):
         #  - Generate and return a new experience.
         # ====== YOUR CODE: ======
         # Sampling from the distribution vector
-        action = torch.multinomial(self.current_action_distribution(), 1).item()
+        action = torch.multinomial(self.current_action_distribution().softmax(dim=0), 1).item()
         # Perform the action
         observation, reward, is_done, info = self.env.step(action)
         # Update agent state
