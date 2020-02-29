@@ -204,8 +204,10 @@ class VanillaPolicyGradientLoss(nn.Module):
         # ====== YOUR CODE: ======
         log_prob = torch.nn.functional.log_softmax(action_scores, dim=1)
         gather_actions = batch.actions
-        gathered = torch.Tensor()
-        torch.gather(input=log_prob, dim=1, index=gather_actions.reshape(-1, 1), sparse_grad=False, out=gathered)
+        # log_prob = log_prob.detach()
+        # gather_actions = gather_actions.detach()
+        # gathered = torch.Tensor()
+        gathered = torch.gather(log_prob, dim=1, index=gather_actions.reshape(-1, 1), sparse_grad=False)
         weighted_avg = torch.mean(policy_weight * gathered.squeeze())
 
         loss_p = -weighted_avg
@@ -294,15 +296,16 @@ class ActionEntropyLoss(nn.Module):
 
         for action_score in action_scores:
 
-            prob = torch.nn.functional.softmax(action_score)
-            log_prob = torch.nn.functional.log_softmax(action_score)
+            prob = torch.nn.functional.softmax(action_score, dim=0)
+            log_prob = torch.nn.functional.log_softmax(action_score, dim=0)
 
             entropy = (prob * log_prob).sum()
             entropy = entropy / self.max_entropy
 
             entropies.append(entropy)
 
-        loss_e = torch.tensor(np.mean(entropies))
+        entropies = torch.stack([ent.view(1) for ent in entropies])
+        loss_e = torch.tensor(torch.mean(entropies))
         # ========================
 
         loss_e *= self.beta
@@ -441,15 +444,22 @@ class PolicyTrainer(object):
         #   - Backprop.
         #   - Update model parameters.
         # ====== YOUR CODE: ======
-
-        for i in batch.:
-            action_scores = self.model(i)
-            for loss_fn in self.loss_functions:
-                loss, loss_dict = loss_fn.forward(batch, action_scores)
+        # print(batch)
+        # TrainBatch(states: torch.Size([3127, 8]), actions: torch.Size([3127]), q_vals: torch.Size([3127])), num_episodes: 32)
+        # batch.
+        # for i in batch.states:
+            # print(i.shape, "******************")
+        action_scores = self.model(batch.states)
+        for loss_fn in self.loss_functions:
+            loss, loss_dict = loss_fn.forward(batch, action_scores)
+            if total_loss is None:
+                total_loss = loss
+            else:
                 total_loss += loss
-                losses_dict.update(loss_dict)
-                loss.backward()
-                self.optimizer.step()
+            losses_dict.update(loss_dict)
+            loss.backward()
+            self.optimizer.step()
+            # print(total_loss)
 
         # ========================
 
