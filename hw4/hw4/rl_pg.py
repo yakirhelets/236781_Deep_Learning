@@ -204,9 +204,7 @@ class VanillaPolicyGradientLoss(nn.Module):
         # ====== YOUR CODE: ======
         log_prob = torch.nn.functional.log_softmax(action_scores, dim=1)
         gather_actions = batch.actions
-        # log_prob = log_prob.detach()
-        # gather_actions = gather_actions.detach()
-        # gathered = torch.Tensor()
+
         gathered = torch.gather(log_prob, dim=1, index=gather_actions.reshape(-1, 1), sparse_grad=False)
         weighted_avg = torch.mean(policy_weight * gathered.squeeze())
 
@@ -305,7 +303,7 @@ class ActionEntropyLoss(nn.Module):
             entropies.append(entropy)
 
         entropies = torch.stack([ent.view(1) for ent in entropies])
-        loss_e = torch.tensor(torch.mean(entropies))
+        loss_e = torch.mean(entropies)
         # ========================
 
         loss_e *= self.beta
@@ -444,11 +442,6 @@ class PolicyTrainer(object):
         #   - Backprop.
         #   - Update model parameters.
         # ====== YOUR CODE: ======
-        # print(batch)
-        # TrainBatch(states: torch.Size([3127, 8]), actions: torch.Size([3127]), q_vals: torch.Size([3127])), num_episodes: 32)
-        # batch.
-        # for i in batch.states:
-            # print(i.shape, "******************")
         action_scores = self.model(batch.states)
         for loss_fn in self.loss_functions:
             loss, loss_dict = loss_fn.forward(batch, action_scores)
@@ -457,9 +450,8 @@ class PolicyTrainer(object):
             else:
                 total_loss += loss
             losses_dict.update(loss_dict)
-            loss.backward()
+            loss.backward(retain_graph=True)
             self.optimizer.step()
-            # print(total_loss)
 
         # ========================
 
