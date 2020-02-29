@@ -42,15 +42,17 @@ def part1_aac_hyperparams():
 
 
 part1_q1 = r"""
-**Your answer:**
 
+Subtracting a baseline in the policy-gradient basically leaves us with the gained
+value of the current action in comparison to the action that we would take in the average case.
+Since the same action can receive different rewards (based on the state), the policy needs to
+collect a lot of experience in order to converge, which contributes to a high variance.
+Thus, using only the gained value (i.e subtracting the baseline) helps us to eliminate the
+variance gained by being in different states.
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+Such method helps especially when there are multiple trajectories with positive rewards.
+By subtracting the baseline, the rewards will be more zero-centered, thus less positive rewards.
+That means that the policy-gradient will increase the probability of less trajectories. 
 
 """
 
