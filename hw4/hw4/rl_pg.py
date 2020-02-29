@@ -202,10 +202,13 @@ class VanillaPolicyGradientLoss(nn.Module):
         #   different episodes. So, here we'll simply average over the number
         #   of total experiences in our batch.
         # ====== YOUR CODE: ======
-        # actions = batch.actions
+        log_prob = torch.nn.functional.log_softmax(action_scores, dim=1)
+        gather_actions = batch.actions
+        gathered = torch.Tensor()
+        torch.gather(input=log_prob, dim=1, index=gather_actions.reshape(-1, 1), sparse_grad=False, out=gathered)
+        weighted_avg = torch.mean(policy_weight * gathered.squeeze())
 
-        # torch.nn.functional.log_softmax(actions, dim=1)
-        # weighted_avg = torch.mean(policy_weight)
+        loss_p = -weighted_avg
 
         # ========================
         return loss_p
@@ -224,7 +227,8 @@ class BaselinePolicyGradientLoss(VanillaPolicyGradientLoss):
         #  Calculate the loss and baseline.
         #  Use the helper methods in this class as before.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        weight, baseline = self._policy_weight(batch)
+        loss_p = self._policy_loss(batch, action_scores, weight)
         # ========================
         return loss_p, dict(loss_p=loss_p.item(), baseline=baseline.item())
 
@@ -233,7 +237,9 @@ class BaselinePolicyGradientLoss(VanillaPolicyGradientLoss):
         #  Calculate both the policy weight term and the baseline value for
         #  the PG loss with baseline.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        policy_weight = batch.q_vals
+        baseline = torch.mean(batch.q_vals)
+        policy_weight = policy_weight - baseline.item()
         # ========================
         return policy_weight, baseline
 
@@ -257,7 +263,7 @@ class ActionEntropyLoss(nn.Module):
         max_entropy = None
         # TODO: Compute max_entropy.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        max_entropy = np.log(n_actions)
         # ========================
         return max_entropy
 
