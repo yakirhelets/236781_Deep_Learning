@@ -19,7 +19,23 @@ class AACPolicyNet(nn.Module):
         #  Implement a dual-head neural net to approximate both the
         #  policy and value. You can have a common base part, or not.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        policy_modules = [nn.Linear(in_features, 32),
+                   nn.ReLU(),
+                   nn.Linear(32, 64),
+                   nn.ReLU(),
+                   nn.Linear(64, out_actions),
+                   nn.Softmax(dim=None)]  # used in order to normalize the out_actions into distributions in the range [0,1] and sum to 1
+
+        self.policy_part = nn.Sequential(*policy_modules)
+
+        value_modules = [nn.Linear(in_features, 32),
+                   nn.ReLU(),
+                   nn.Linear(32, 64),
+                   nn.ReLU(),
+                   nn.Linear(64, out_actions),
+                   nn.Softmax(dim=None)]  # used in order to normalize the out_actions into distributions in the range [0,1] and sum to 1
+
+        self.value_part = nn.Sequential(*value_modules)
         # ========================
 
     def forward(self, x):
@@ -34,7 +50,8 @@ class AACPolicyNet(nn.Module):
         #  calculate both the action scores (policy) and the value of the
         #  given state.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        action_scores = self.policy_part(x)
+        state_values = self.value_part(x)
         # ========================
 
         return action_scores, state_values
@@ -49,7 +66,9 @@ class AACPolicyNet(nn.Module):
         """
         # TODO: Implement according to docstring.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+
+        net = AACPolicyNet(env.observation_space.shape[0], env.action_space.n, **kw)
+
         # ========================
         return net.to(device)
 
