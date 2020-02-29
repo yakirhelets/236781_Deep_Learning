@@ -29,12 +29,11 @@ class PolicyNet(nn.Module):
 
         # TODO: Implement a simple neural net to approximate the policy.
         # ====== YOUR CODE: ======
-        modules = [nn.Linear(in_features, 32),
+        modules = [nn.Linear(in_features, 256),
                    nn.ReLU(),
-                   nn.Linear(32, 64),
+                   nn.Linear(256, 128),
                    nn.ReLU(),
-                   nn.Linear(64, out_actions),
-                   nn.Softmax(dim=None)]  # used in order to normalize the out_actions into distributions in the range [0,1] and sum to 1
+                   nn.Linear(128, out_actions)]  # used in order to normalize the out_actions into distributions in the range [0,1] and sum to 1
 
         self.pn = nn.Sequential(*modules)
         # ========================
@@ -95,6 +94,7 @@ class PolicyAgent(object):
         #  Notice that you should use p_net for *inference* only.
         # ====== YOUR CODE: ======
         actions_proba = self.p_net(self.curr_state)
+        actions_proba = actions_proba.softmax(dim=0)
         # ========================
 
         return actions_proba
@@ -116,7 +116,7 @@ class PolicyAgent(object):
         #  - Generate and return a new experience.
         # ====== YOUR CODE: ======
         # Sampling from the distribution vector
-        action = torch.multinomial(self.current_action_distribution().softmax(dim=0), 1).item()
+        action = torch.multinomial(self.current_action_distribution(), 1).item()
         # Perform the action
         observation, reward, is_done, info = self.env.step(action)
         # Update agent state
@@ -290,20 +290,26 @@ class ActionEntropyLoss(nn.Module):
         #   - Calculate loss per experience and average over all of them.
         # ====== YOUR CODE: ======
 
-        entropies = []
+        # entropies = []
+        #
+        # for action_score in action_scores:
+        #
+        #     prob = torch.nn.functional.softmax(action_score, dim=0)
+        #     log_prob = torch.nn.functional.log_softmax(action_score, dim=0)
+        #
+        #     entropy = (prob * log_prob).sum()
+        #     entropy = entropy / self.max_entropy
+        #
+        #     entropies.append(entropy)
 
-        for action_score in action_scores:
+        probs = [torch.nn.functional.softmax(action_score, dim=0) for action_score in action_scores]
+        log_probs = [torch.nn.functional.log_softmax(action_score, dim=0) for action_score in action_scores]
 
-            prob = torch.nn.functional.softmax(action_score, dim=0)
-            log_prob = torch.nn.functional.log_softmax(action_score, dim=0)
-
-            entropy = (prob * log_prob).sum()
-            entropy = entropy / self.max_entropy
-
-            entropies.append(entropy)
+        entropies = [(prob * log_prob).sum() / self.max_entropy for prob,log_prob in zip(probs, log_probs)]
 
         entropies = torch.stack([ent.view(1) for ent in entropies])
         loss_e = torch.mean(entropies)
+
         # ========================
 
         loss_e *= self.beta
