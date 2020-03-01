@@ -80,20 +80,24 @@ over the previous method. By that we are stabilizing the model and reducing the 
 part1_q3 = r"""
 **Your answer:**
 
-We got 4 graphs in the first experiment run, and following are some insights derived from them:
+1. We got 4 graphs in the first experiment run, and following are some insights derived from them:
 
-- The losses of the models are want to go towards 0
-- they are doing a good job since the trend in all of them is mostly increasing
-- we can see that the different losses
-- in loss_p, combined achieves the best results as proper to an improved model
-- in the loss entropy graph, the entropy line does best
-- 
-
-
-- aac is generally doing better than the policy gradient. one of the reasons is what we stated in q2, which
-makes the aac model an improved one over the pg 
+- The losses of the models should aspire towards 0 as the model is improving. We can see that the model is doing
+a good job since the graphs show this trend (the trend in all of them is mostly increasing, and towards 0)
+- Additionally, the improved model cpg is doing best reward-wise in terms of the peak it reaches at its best,
+as can be seen in the mean_reward graph
+- In the loss entropy graph, the entropy line does best compared to the other one, which also is what we would expect
 
 
+2. Comparing the experiment graphs we got with the AAC method to the regular PG method (cpg) we can conclude the
+following insights:
+
+- AAC is generally doing better than the policy gradient (prior to fine tuning it performed much better).
+One of the reasons is what we stated in q2, which makes the aac model an improved one over the pg.
+- We can see in the mean_rewards graph that in the end, the reward that AAC achieved is significantly better
+than the one the cpg achieved.
+- The AAC loss keeps going towards 0 while the cpg loss can be thought of as remaining the same or decreasing
+(mainly in the end)
 
 
 """
