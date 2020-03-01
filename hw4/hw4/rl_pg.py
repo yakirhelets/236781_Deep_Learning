@@ -29,11 +29,11 @@ class PolicyNet(nn.Module):
 
         # TODO: Implement a simple neural net to approximate the policy.
         # ====== YOUR CODE: ======
-        modules = [nn.Linear(in_features, 256),
+        modules = [nn.Linear(in_features, 32),
                    nn.ReLU(),
-                   nn.Linear(256, 128),
+                   nn.Linear(32, 32),
                    nn.ReLU(),
-                   nn.Linear(128, out_actions)]  # used in order to normalize the out_actions into distributions in the range [0,1] and sum to 1
+                   nn.Linear(32, out_actions)]
 
         self.pn = nn.Sequential(*modules)
         # ========================
@@ -237,9 +237,8 @@ class BaselinePolicyGradientLoss(VanillaPolicyGradientLoss):
         #  Calculate both the policy weight term and the baseline value for
         #  the PG loss with baseline.
         # ====== YOUR CODE: ======
-        policy_weight = batch.q_vals
         baseline = torch.mean(batch.q_vals)
-        policy_weight = policy_weight - baseline.item()
+        policy_weight = batch.q_vals - baseline.item()
         # ========================
         return policy_weight, baseline
 
@@ -453,11 +452,14 @@ class PolicyTrainer(object):
             loss, loss_dict = loss_fn.forward(batch, action_scores)
             if total_loss is None:
                 total_loss = loss
+                losses_dict.update(loss_dict)
+                loss.backward(retain_graph=True)
             else:
                 total_loss += loss
-            losses_dict.update(loss_dict)
-            loss.backward(retain_graph=True)
+                losses_dict.update(loss_dict)
+                loss.backward()
             self.optimizer.step()
+
 
         # ========================
 

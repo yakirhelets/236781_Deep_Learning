@@ -11,10 +11,10 @@ math (delimited with $$).
 
 
 def part1_pg_hyperparams():
-    hp = dict(batch_size=32,
+    hp = dict(batch_size=64,
               gamma=0.99,
               beta=0.5,
-              learn_rate=1e-3,
+              learn_rate=3.1*1e-3,
               eps=1e-8,
               )
     # TODO: Tweak the hyperparameters if needed.
@@ -42,6 +42,7 @@ def part1_aac_hyperparams():
 
 
 part1_q1 = r"""
+**Your answer:**
 
 Subtracting a baseline in the policy-gradient basically leaves us with the gained
 value of the current action in comparison to the action that we would take in the average case.
@@ -60,13 +61,10 @@ That means that the policy-gradient will increase the probability of less trajec
 part1_q2 = r"""
 **Your answer:**
 
+In AAC, when using the estimated q-values as regression targets for our state-values, why do we get a valid approximation?
+Hint: how is $v_\pi(s)$ expressed in terms of $q_\pi(s,a)$?
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+
 
 """
 
