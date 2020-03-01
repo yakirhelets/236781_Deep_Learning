@@ -28,7 +28,7 @@ def part1_pg_hyperparams():
 def part1_aac_hyperparams():
     hp = dict(batch_size=64,
               gamma=0.99,
-              beta=0.5,
+              beta=0.333,
               delta=1.5,
               learn_rate=1.7*1e-3,
               eps=1e-8,
