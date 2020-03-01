@@ -61,9 +61,17 @@ That means that the policy-gradient will increase the probability of less trajec
 part1_q2 = r"""
 **Your answer:**
 
-In AAC, when using the estimated q-values as regression targets for our state-values, why do we get a valid approximation?
-Hint: how is $v_\pi(s)$ expressed in terms of $q_\pi(s,a)$?
+$v_\pi(s)$ is expressed in terms of $q_\pi(s,a)$ in such a way that $v_\pi(s) = q_\pi(s,a) - advantage$
 
+The advantage function's purpose is to capture how better an action is compared to the other possible actions -
+at a given state, and of course the value function's (v) purpose is to capture how good it is for our agent to
+be in this state.
+
+Now, the reason that when using the estimated q-values as regression targets for our state-values (v) we get
+a valid approximation is that instead of having the critic (in the AAC) to learn the q-values, we make it learn
+the values of the different advantages. This causes the evaluation of a certain action to be based not only on
+how good the action is, but also how better it can get, which is not just a valid approximation but an improved one
+over the previous method. By that we are stabilizing the model and reducing the high variance of those networks. 
 
 
 """
