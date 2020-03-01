@@ -118,8 +118,7 @@ class AACPolicyGradientLoss(VanillaPolicyGradientLoss):
         #  Notice that we don't want to backprop errors from the policy
         #  loss into the state-value network.
         # ====== YOUR CODE: ======
-        advantage = batch.q_vals - state_values.softmax(dim=1).max(dim=1)[0]
-
+        advantage = batch.q_vals - state_values.detach().softmax(dim=1).max(dim=1)[0]
         # ========================
         return advantage
 
