@@ -21,19 +21,17 @@ class AACPolicyNet(nn.Module):
         # ====== YOUR CODE: ======
         policy_modules = [nn.Linear(in_features, 32),
                    nn.ReLU(),
-                   nn.Linear(32, 64),
+                   nn.Linear(32, 32),
                    nn.ReLU(),
-                   nn.Linear(64, out_actions),
-                   nn.Softmax(dim=None)]  # used in order to normalize the out_actions into distributions in the range [0,1] and sum to 1
+                   nn.Linear(32, out_actions)]
 
         self.policy_part = nn.Sequential(*policy_modules)
 
         value_modules = [nn.Linear(in_features, 32),
                    nn.ReLU(),
-                   nn.Linear(32, 64),
+                   nn.Linear(32, 32),
                    nn.ReLU(),
-                   nn.Linear(64, out_actions),
-                   nn.Softmax(dim=None)]  # used in order to normalize the out_actions into distributions in the range [0,1] and sum to 1
+                   nn.Linear(32, out_actions)]
 
         self.value_part = nn.Sequential(*value_modules)
         # ========================
@@ -120,22 +118,14 @@ class AACPolicyGradientLoss(VanillaPolicyGradientLoss):
         #  Notice that we don't want to backprop errors from the policy
         #  loss into the state-value network.
         # ====== YOUR CODE: ======
-        advantage = batch.q_vals
+        advantage = batch.q_vals - state_values
         # ========================
         return advantage
 
     def _value_loss(self, batch: TrainBatch, state_values: torch.Tensor):
         # TODO: Calculate the state-value loss.
         # ====== YOUR CODE: ======
-        advantage = self._policy_weight(batch, state_values)
-
-        log_prob = torch.nn.functional.log_softmax(state_values, dim=1)
-        # gather_actions = batch.actions
-
-        # gathered = torch.gather(log_prob, dim=1, index=gather_actions.reshape(-1, 1), sparse_grad=False)
-        weighted_avg = torch.mean(advantage * log_prob)
-
-        loss_v = -weighted_avg
+        loss_v = torch.nn.functional.mse_loss(state_values, batch.q_vals.unsqueeze(dim=1))
         # ========================
         return loss_v
 
