@@ -78,7 +78,8 @@ class AACPolicyAgent(PolicyAgent):
     def current_action_distribution(self) -> torch.Tensor:
         # TODO: Generate the distribution as described above.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        actions_proba, _ = self.p_net(self.curr_state)
+        actions_proba = actions_proba.softmax(dim=0)
         # ========================
         return actions_proba
 
@@ -101,7 +102,11 @@ class AACPolicyGradientLoss(VanillaPolicyGradientLoss):
         #  advantage vector per state.
         #  Use the helper functions in this class and its base.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+
+        advantage = self._policy_weight(batch, state_values)
+        loss_p = self._policy_loss(batch, action_scores, advantage)
+        loss_v = self._value_loss(batch, state_values)
+
         # ========================
 
         loss_v *= self.delta
@@ -115,14 +120,22 @@ class AACPolicyGradientLoss(VanillaPolicyGradientLoss):
         #  Notice that we don't want to backprop errors from the policy
         #  loss into the state-value network.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        advantage = batch.q_vals
         # ========================
         return advantage
 
     def _value_loss(self, batch: TrainBatch, state_values: torch.Tensor):
         # TODO: Calculate the state-value loss.
         # ====== YOUR CODE: ======
-        raise NotImplementedError()
+        advantage = self._policy_weight(batch, state_values)
+
+        log_prob = torch.nn.functional.log_softmax(state_values, dim=1)
+        # gather_actions = batch.actions
+
+        # gathered = torch.gather(log_prob, dim=1, index=gather_actions.reshape(-1, 1), sparse_grad=False)
+        weighted_avg = torch.mean(advantage * log_prob)
+
+        loss_v = -weighted_avg
         # ========================
         return loss_v
 
