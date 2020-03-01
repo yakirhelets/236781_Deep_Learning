@@ -93,8 +93,9 @@ class PolicyAgent(object):
         #  Generate the distribution as described above.
         #  Notice that you should use p_net for *inference* only.
         # ====== YOUR CODE: ======
-        actions_proba = self.p_net(self.curr_state)
-        actions_proba = actions_proba.softmax(dim=0)
+        actions_proba_tmp = self.p_net(self.curr_state)
+
+        actions_proba = actions_proba_tmp.softmax(dim=0) if not isinstance(actions_proba_tmp, tuple) else actions_proba_tmp[0].softmax(dim=0)
         # ========================
 
         return actions_proba

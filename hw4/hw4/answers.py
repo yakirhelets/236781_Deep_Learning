@@ -80,12 +80,20 @@ over the previous method. By that we are stabilizing the model and reducing the 
 part1_q3 = r"""
 **Your answer:**
 
+We got 4 graphs in the first experiment run, and following are some insights derived from them:
 
-Write your answer using **markdown** and $\LaTeX$:
-```python
-# A code block
-a = 2
-```
-An equation: $e^{i\pi} -1 = 0$
+- The losses of the models are want to go towards 0
+- they are doing a good job since the trend in all of them is mostly increasing
+- we can see that the different losses
+- in loss_p, combined achieves the best results as proper to an improved model
+- in the loss entropy graph, the entropy line does best
+- 
+
+
+- aac is generally doing better than the policy gradient. one of the reasons is what we stated in q2, which
+makes the aac model an improved one over the pg 
+
+
+
 
 """
