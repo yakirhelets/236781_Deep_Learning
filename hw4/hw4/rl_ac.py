@@ -118,14 +118,15 @@ class AACPolicyGradientLoss(VanillaPolicyGradientLoss):
         #  Notice that we don't want to backprop errors from the policy
         #  loss into the state-value network.
         # ====== YOUR CODE: ======
-        advantage = batch.q_vals - state_values
+        advantage = batch.q_vals - state_values.softmax(dim=1).max(dim=1)[0]
+
         # ========================
         return advantage
 
     def _value_loss(self, batch: TrainBatch, state_values: torch.Tensor):
         # TODO: Calculate the state-value loss.
         # ====== YOUR CODE: ======
-        loss_v = torch.nn.functional.mse_loss(state_values, batch.q_vals.unsqueeze(dim=1))
+        loss_v = torch.nn.functional.mse_loss(state_values.softmax(dim=1).max(dim=1)[0], batch.q_vals)
         # ========================
         return loss_v
 
